@@ -1,17 +1,35 @@
+/*
+========================================
+CONFIG.JS
+========================================
+
+PURPOSE:
+Centralized runtime configuration for the backend application.
+
+RESPONSIBILITIES:
+- Load environment variables
+- Normalize backend configuration
+- Store OpenRouter runtime settings
+- Provide one consistent config object
+  for the entire server*/
+
+  import dotenv from "dotenv";
+
+
+dotenv.config();
 const config = {
 
   openRouter: {
 
     apiKey: process.env.OPENROUTER_API_KEY,
 
-    model: "deepseek/deepseek-v4-flash",
+    model: process.env.OPENROUTER_MODEL,
 
-    baseUrl: "https://openrouter.ai/api/v1/chat/completions",
+    baseUrl: process.env.OPENROUTER_BASE_URL,
 
-    temperature: 0.7,
+    temperature: process.env.OPENROUTER_TEMPERATURE,
 
-    maxTokens: 2000
-
+    maxTokens: process.env.OPENROUTER_MAX_TOKENS
   }
   };
 
