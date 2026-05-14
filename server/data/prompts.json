@@ -1,0 +1,59 @@
+{
+  "capacityCheck": {
+    "version": "v1",
+
+    "name": "Capacity Check Prompt",
+
+    "description": "Optimizes task execution based on available time, energy, focus, and workload.",
+
+    "variables": [
+      "AVAILABLE_TIME",
+      "ENERGY_LEVEL",
+      "FOCUS_LEVEL",
+      "EMOTIONAL_CONTEXT",
+      "TODO_LIST"
+    ],
+
+    "responseType": "json",
+
+    "prompt": "capacitycheck.txt"
+  },
+
+  "taskCleanup": {
+    "version": "v1",
+
+    "name": "Task Cleanup Prompt",
+
+    "description": "Audits todo system organization and recommends operational corrections.",
+
+    "variables": [
+      "TODO_LIST"
+    ],
+
+    "responseType": "json",
+
+    "prompt": "agentaudit.txt"
+  },
+
+  "weekendPlanner": {
+    "version": "v1",
+
+    "name": "Weekend Planner Prompt",
+
+    "description": "Generates emotionally aligned weekend recommendations based on energy, mood, and available events.",
+
+    "variables": [
+      "MOOD",
+      "ENERGY_LEVEL",
+      "SOCIAL_BATTERY",
+      "AVAILABLE_TIME",
+      "USER_CONTEXT",
+      "CURRENT_LOCATION",
+      "EVENT_LIST"
+    ],
+
+    "responseType": "json",
+
+    "prompt": "weekendplanner.txt"
+  }
+}
