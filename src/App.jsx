@@ -1,4 +1,9 @@
 import './App.css'
+import ListsTab from "./components/ListsTab";
+import WeekendPlannerModal from "./components/WeekendPlannerModal";
+import EventsTab from "./components/EventsTab";
+import CapacityModal from "./components/CapacityModal";
+import AgentReadout from "./components/AgentReadout";
 import { nextId, recycleId } from "./components/idBank";
 import TodoForm from "./components/TodoForm";
 import TodoList from "./components/TodoList";
@@ -15,6 +20,14 @@ function App() {
   const [todos, setTodos] = useState([]);
   
   const [completionLog, setCompletionLog] = useState([]);
+// Controls which main tab is currently visible
+  const [activeTab, setActiveTab] = useState("todos");
+
+// Controls visibility of capacity check popup
+  const [showCapacityModal, setShowCapacityModal] = useState(false);
+
+// Controls visibility of weekend planner popup
+  const [showWeekendModal, setShowWeekendModal] = useState(false);
 
   // ======================
   // HANDLERS
@@ -192,39 +205,177 @@ console.log("Toggling Complete:", id);
   };
   
   return (
-    <div className="app-layout">
 
-    <header  className="app-header">
+  <div className="app-layout">
+
+    {/* ======================================== */}
+    {/* HEADER */}
+    {/* ======================================== */}
+
+    <header className="app-header">
+
       <h1>VSTDA</h1>
+
       <p>Visual Task Decision Assistant</p>
+
     </header>
 
-    <section className="todo-form-panel">
-      <h2>Create Task</h2>
-      <TodoForm addTodo={addTodo} />
+
+
+    {/* ======================================== */}
+    {/* TOP ACTION BAR */}
+    {/* ======================================== */}
+
+    <section className="top-action-bar">
+
+      {/* TAB BUTTONS */}
+
+      <button onClick={() => setActiveTab("todos")}>
+        Tasks
+      </button>
+
+      <button onClick={() => setActiveTab("events")}>
+        Events
+      </button>
+
+      <button onClick={() => setActiveTab("lists")}>
+        Lists
+      </button>
+
+
+
+      {/* MODAL TRIGGERS */}
+
+      <button onClick={() => setShowCapacityModal(true)}>
+        Capacity Check
+      </button>
+
+      <button onClick={() => setShowWeekendModal(true)}>
+        Plan Weekend
+      </button>
+
     </section>
 
-    <section className="todo-list-panel">
-      <h2>Task List</h2>
-      <TodoList
-        todos={todos}
-        deleteTodo={deleteTodo}
-        updateTodo={updateTodo}
-        toggleComplete={toggleComplete}
-        selectedItemId={selectedItemId}
-        selectTodoItem={selectTodoItem}
-      />
+
+
+    {/* ======================================== */}
+    {/* MAIN CONTENT AREA */}
+    {/* ======================================== */}
+
+    <section className="main-content-panel">
+
+      {activeTab === "todos" && (
+
+        <>
+
+          <section className="todo-form-panel">
+
+            <h2>Create Task</h2>
+
+            <TodoForm addTodo={addTodo} />
+
+          </section>
+
+
+
+          <section className="todo-list-panel">
+
+            <h2>Task List</h2>
+
+            <TodoList
+              todos={todos}
+              deleteTodo={deleteTodo}
+              updateTodo={updateTodo}
+              toggleComplete={toggleComplete}
+              selectedItemId={selectedItemId}
+              selectTodoItem={selectTodoItem}
+            />
+
+          </section>
+
+        </>
+
+      )}
+
+
+
+      {activeTab === "events" && (
+
+        <section className="events-panel">
+
+          <h2>Events</h2>
+
+          <EventsTab />
+
+        </section>
+
+      )}
+
+
+
+      {activeTab === "lists" && (
+
+        <section className="lists-panel">
+
+          <h2>Lists</h2>
+
+          <ListsTab />
+
+        </section>
+
+      )}
+
     </section>
+
+
+
+    {/* ======================================== */}
+    {/* SIDEBAR */}
+    {/* ======================================== */}
 
     <section className="sidebar-panel">
+
       <h2>Task Intelligence</h2>
+
       <Sidebar
         todos={todos}
         completionLog={completionLog}
       />
+
+
+
+      {/* AGENT READOUT */}
+
+      <AgentReadout />
+
     </section>
 
+
+
+    {/* ======================================== */}
+    {/* MODALS */}
+    {/* ======================================== */}
+
+    {showCapacityModal && (
+
+      <CapacityModal
+        onClose={() => setShowCapacityModal(false)}
+      />
+
+    )}
+
+
+
+    {showWeekendModal && (
+
+      <WeekendPlannerModal
+        onClose={() => setShowWeekendModal(false)}
+      />
+
+    )}
+
   </div>
+
 );
 }
 export default App

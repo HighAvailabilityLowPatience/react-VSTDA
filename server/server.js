@@ -7,6 +7,7 @@ import saveJson from "./saveJson.js"; //done
 import loadPrompt from "./loadPrompt.js"; //done
 import buildPrompt from "./buildPrompt.js";//done
 import callOpenRouter from "./callOpenRouter.js";//done
+import {generateTodoIds,manageTodos,manageEvents,manageLists} from "./Manager.js";
 
 
 const app = express();
@@ -318,6 +319,357 @@ app.post("/weekend-planner", async (req, res) => {
 
 });
 
+// ========================================
+// TODO MUTATION ROUTE
+// ========================================
+
+app.post("/todos", async (req, res) => {
+
+  try {
+
+    // ========================================
+    // REQUEST DATA
+    // ========================================
+
+    const { action, payload } = req.body;
+
+
+
+    // ========================================
+    // VALIDATION
+    // ========================================
+
+    if (!action) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        error: "Missing action."
+
+      });
+
+    }
+
+
+
+    // ========================================
+    // ACTION DISPATCH
+    // ========================================
+
+    switch (action) {
+
+      case "createTodo":
+
+        console.log("Creating todo...");
+        console.log(payload);
+
+        break;
+
+
+
+      case "updateTodo":
+
+        console.log("Updating todo...");
+        console.log(payload);
+
+        break;
+
+
+
+      case "deleteTodo":
+
+        console.log("Deleting todo...");
+        console.log(payload);
+
+        break;
+
+
+
+      case "toggleComplete":
+
+        console.log("Toggling completion...");
+        console.log(payload);
+
+        break;
+
+
+
+      default:
+
+        return res.status(400).json({
+
+          success: false,
+
+          error: "Invalid todo action."
+
+        });
+
+    }
+
+
+
+    // ========================================
+    // SUCCESS RESPONSE
+    // ========================================
+
+    return res.status(200).json({
+
+      success: true,
+
+      message: "Todo action received."
+
+    });
+
+  }
+
+  catch (error) {
+
+    console.error("TODO ROUTE ERROR:", error);
+
+
+
+    return res.status(500).json({
+
+      success: false,
+
+      error: "Internal server error."
+
+    });
+
+  }
+
+});
+
+
+
+// ========================================
+// EVENTS MUTATION ROUTE
+// ========================================
+
+app.post("/events", async (req, res) => {
+
+  try {
+
+    // ========================================
+    // REQUEST DATA
+    // ========================================
+
+    const { action, payload } = req.body;
+
+
+
+    // ========================================
+    // VALIDATION
+    // ========================================
+
+    if (!action) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        error: "Missing action."
+
+      });
+
+    }
+
+
+
+    // ========================================
+    // ACTION DISPATCH
+    // ========================================
+
+    switch (action) {
+
+      case "createEvent":
+
+        console.log("Creating event...");
+        console.log(payload);
+
+        break;
+
+
+
+      case "updateEvent":
+
+        console.log("Updating event...");
+        console.log(payload);
+
+        break;
+
+
+
+      case "deleteEvent":
+
+        console.log("Deleting event...");
+        console.log(payload);
+
+        break;
+
+
+
+      default:
+
+        return res.status(400).json({
+
+          success: false,
+
+          error: "Invalid event action."
+
+        });
+
+    }
+
+
+
+    // ========================================
+    // SUCCESS RESPONSE
+    // ========================================
+
+    return res.status(200).json({
+
+      success: true,
+
+      message: "Event action received."
+
+    });
+
+  }
+
+  catch (error) {
+
+    console.error("EVENT ROUTE ERROR:", error);
+
+
+
+    return res.status(500).json({
+
+      success: false,
+
+      error: "Internal server error."
+
+    });
+
+  }
+
+});
+
+
+
+// ========================================
+// LISTS MUTATION ROUTE
+// ========================================
+
+app.post("/lists", async (req, res) => {
+
+  try {
+
+    // ========================================
+    // REQUEST DATA
+    // ========================================
+
+    const { action, payload } = req.body;
+
+
+
+    // ========================================
+    // VALIDATION
+    // ========================================
+
+    if (!action) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        error: "Missing action."
+
+      });
+
+    }
+
+
+
+    // ========================================
+    // ACTION DISPATCH
+    // ========================================
+
+    switch (action) {
+
+      case "addListItem":
+
+        console.log("Adding list item...");
+        console.log(payload);
+
+        break;
+
+
+
+      case "updateListItem":
+
+        console.log("Updating list item...");
+        console.log(payload);
+
+        break;
+
+
+
+      case "deleteListItem":
+
+        console.log("Deleting list item...");
+        console.log(payload);
+
+        break;
+
+
+
+      default:
+
+        return res.status(400).json({
+
+          success: false,
+
+          error: "Invalid list action."
+
+        });
+
+    }
+
+
+
+    // ========================================
+    // SUCCESS RESPONSE
+    // ========================================
+
+    return res.status(200).json({
+
+      success: true,
+
+      message: "List action received."
+
+    });
+
+  }
+
+  catch (error) {
+
+    console.error("LIST ROUTE ERROR:", error);
+
+
+
+    return res.status(500).json({
+
+      success: false,
+
+      error: "Internal server error."
+
+    });
+
+  }
+
+});
 
 // ========================================
 // GLOBAL ERROR HANDLER
