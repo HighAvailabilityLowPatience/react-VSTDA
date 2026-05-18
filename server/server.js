@@ -3,11 +3,10 @@ import cors from "cors";
 
 import loadJson from "./loadJson.js"; //done
 import saveJson from "./saveJson.js"; //done
-
 import loadPrompt from "./loadPrompt.js"; //done
 import buildPrompt from "./buildPrompt.js";//done
 import callOpenRouter from "./callOpenRouter.js";//done
-import {generateTodoIds,manageTodos,manageEvents,manageLists} from "./Manager.js";
+import {manageTodos,manageEvents,manageLists} from "./Manager.js";
 
 
 const app = express();
@@ -350,8 +349,6 @@ app.post("/todos", async (req, res) => {
       });
 
     }
-
-
 
     // ========================================
     // ACTION DISPATCH

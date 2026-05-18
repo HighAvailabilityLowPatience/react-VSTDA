@@ -4,11 +4,21 @@ import WeekendPlannerModal from "./components/WeekendPlannerModal";
 import EventsTab from "./components/EventsTab";
 import CapacityModal from "./components/CapacityModal";
 import AgentReadout from "./components/AgentReadout";
-import { nextId, recycleId } from "./components/idBank";
 import TodoForm from "./components/TodoForm";
 import TodoList from "./components/TodoList";
 import Sidebar from "./components/Sidebar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+//ENDPOINTS
+
+const API = {
+  todos: "http://localhost:3000/todos",
+  events: "http://localhost:3000/events",
+  lists: "http://localhost:3000/lists",
+  capacityCheck: "http://localhost:3000/capacity-check",
+  weekendPlanner: "http://localhost:3000/weekend-planner",
+  taskCleanup: "http://localhost:3000/task-cleanup"
+};
 
 function App() {
     // ======================
@@ -29,34 +39,52 @@ function App() {
 // Controls visibility of weekend planner popup
   const [showWeekendModal, setShowWeekendModal] = useState(false);
 
+  //------------------
+  //Initial Data Fetch handlers
+const fetchTodos = async () => {
+
+  const response = await fetch(API.todos);
+
+  const data = await response.json();
+
+  setTodos(data.todos);
+
+};
+const fetchEvents = async () => {
+
+  const response = await fetch(API.events);
+
+  const data = await response.json();
+
+  setEvents(data.events);
+
+};
+const fetchLists = async () => {
+
+  const response = await fetch(API.lists);
+
+  const data = await response.json();
+
+  setLists(data.lists);
+
+};
+useEffect(() => {
+
+  fetchTodos();
+
+  fetchEvents();
+
+  fetchLists();
+
+}, []);
+
+
   // ======================
-  // HANDLERS
+  // Mutation HANDLERS
   // ======================
 //takes item from form and creates new id and then pushes the new item(object) into todolist array
-const addTodo = (todoData) => {
+const addTodo = async (todoData) => {
 
-  console.log('Creating/Validating new to do Item', todoData);
-
-  const newTodo = {
-
-    id: nextId(),
-
-    task: todoData.task,
-
-    priority: todoData.priority || "",
-
-    estimatedTimeCost: Number(todoData.estimatedTimeCost),
-
-    category: todoData.category || "",
-
-    completed: false,
-
-    dueDate: todoData.dueDate,
-
-    notes: todoData.notes || ""
-
-  };
-  // VALIDATION
   if (
     !todoData.task ||
     !todoData.estimatedTimeCost ||
@@ -66,23 +94,29 @@ const addTodo = (todoData) => {
     console.log("Missing required fields");
 
     return;
+
   }
 
+  const response = await fetch(API.todos, {
 
-  console.log("Creating Todo:", newTodo);
+    method: "POST",
 
+    headers: {
+      "Content-Type": "application/json"
+    },
 
-  setTodos((currentTodos) => {
-
-    const updatedTodos = [...currentTodos, newTodo];
-
-    console.log("Updated Todos:", updatedTodos);
-
-    return updatedTodos;
+    body: JSON.stringify({
+      action: "createTodo",
+      payload: todoData
+    })
 
   });
 
-  };
+  const data = await response.json();
+
+  setTodos(data.todos);
+
+};
 //remove item from array and then return id to the bank
   const deleteTodo = (id) => {
 console.log("Deleting Todo ID:", id);
@@ -117,93 +151,348 @@ console.log("Deleting Todo ID:", id);
 
   };
 //edit the selected item
-  const updateTodo = (id,updatedData) => {
-    console.log("Updating Todo:", id);
-    console.log("Updated Data:", updatedData);
-  setTodos((currentTodos) => {
+  const updateTodo = async (id, updatedData) => {
 
-     const updatedTodos = currentTodos.map((todo) => {
+  const response = await fetch(API.todos, {
 
-      // NOT THE TARGET
-      if (todo.id !== id) {
+    method: "POST",
 
-        return todo;
+    headers: {
+      "Content-Type": "application/json"
+    },
 
+    body: JSON.stringify({
+      action: "updateTodo",
+      payload: {
+        id,
+        changes: updatedData
       }
-
-
-      // TARGET FOUND
-      return {
-
-        ...todo,
-
-        ...updatedData
-
-      };
-
-    });
-
-
-    console.log("Updated Todos:", updatedTodos);
-
-    return updatedTodos;
+    })
 
   });
 
-  };
+  const data = await response.json();
+
+  setTodos(data.todos);
+
+};
   //edits array object from True-False
-  const toggleComplete = (id) => {
-console.log("Toggling Complete:", id);
+  const toggleComplete = async (id) => {
 
+  const targetTodo = todos.find((todo) => {
 
-   setTodos((currentTodos) => {
-
-    const updatedTodos = currentTodos.map((todo) => {
-
-      // NOT TARGET
-      if (todo.id !== id) {
-
-        return todo;
-
-      }
-
-
-      // TARGET FOUND
-
-      // ONLY LOG NEW COMPLETIONS
-      if (!todo.completed) {
-
-        setCompletionLog((currentLog) => {
-
-          return [...currentLog, Date.now()];
-
-        });
-
-      }
-
-
-      return {
-
-        ...todo,
-
-        completed: !todo.completed
-
-      };
-
-    });
-
-    return updatedTodos;
+    return todo.id === id;
 
   });
 
-  };
+  if (targetTodo && !targetTodo.completed) {
+
+    setCompletionLog((currentLog) => {
+
+      return [...currentLog, Date.now()];
+
+    });
+
+  }
+
+  const response = await fetch(API.todos, {
+
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify({
+      action: "toggleComplete",
+      payload: { id }
+    })
+
+  });
+
+  const data = await response.json();
+
+  setTodos(data.todos);
+
+};
 //Controls selectedItemId, determines Which TodoItem is currently open/expanded/editable
   const selectTodoItem = (id) => {
      console.log("Selecting Todo Item:", id);
 
   setSelectedItemId(id);
   };
-  
+  /*Handlers to add and where to pass them
+        handleAddEvent>>>eEventstab.js
+      handleUpdateEvent>>>Eventstab.js
+      handleDeleteEvent>>>>Eventstab.js
+      handleAddListItem>>>>Liststab.js
+      handleUpdateListItem>>>>Liststab.js
+      handleDeleteListItem>>>>Liststab.js
+      handleCapacityCheck>>>>Capacitymodal.js
+      handleWeekendPlanner>>>>Weekendplanner.js
+      handleTaskCleanup>>>>Agent AgentReadout.js
+      */
+
+   // ========================================
+// EVENTS
+// ========================================
+
+const handleAddEvent = async (eventData) => {
+
+  const response = await fetch(API.events, {
+
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify({
+      action: "createEvent",
+      payload: eventData
+    })
+
+  });
+
+  const data = await response.json();
+
+  setEvents(data.events);
+
+};
+
+
+
+const handleUpdateEvent = async (id, updatedData) => {
+
+  const response = await fetch(API.events, {
+
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify({
+      action: "updateEvent",
+      payload: {
+        id,
+        changes: updatedData
+      }
+    })
+
+  });
+
+  const data = await response.json();
+
+  setEvents(data.events);
+
+};
+
+
+
+const handleDeleteEvent = async (id) => {
+
+  const response = await fetch(API.events, {
+
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify({
+      action: "deleteEvent",
+      payload: { id }
+    })
+
+  });
+
+  const data = await response.json();
+
+  setEvents(data.events);
+
+};
+
+
+
+// ========================================
+// LISTS
+// ========================================
+
+const handleAddListItem = async (listType, value) => {
+
+  const response = await fetch(API.lists, {
+
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify({
+      action: "addListItem",
+      payload: {
+        listType,
+        value
+      }
+    })
+
+  });
+
+  const data = await response.json();
+
+  setLists(data.lists);
+
+};
+
+
+
+const handleUpdateListItem = async (
+  listType,
+  id,
+  updatedData
+) => {
+
+  const response = await fetch(API.lists, {
+
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify({
+      action: "updateListItem",
+      payload: {
+        listType,
+        id,
+        changes: updatedData
+      }
+    })
+
+  });
+
+  const data = await response.json();
+
+  setLists(data.lists);
+
+};
+
+
+
+const handleDeleteListItem = async (
+  listType,
+  id
+) => {
+
+  const response = await fetch(API.lists, {
+
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify({
+      action: "deleteListItem",
+      payload: {
+        listType,
+        id
+      }
+    })
+
+  });
+
+  const data = await response.json();
+
+  setLists(data.lists);
+
+};
+
+
+
+// ========================================
+// CAPACITY CHECK
+// ========================================
+
+const handleCapacityCheck = async (
+  capacityData
+) => {
+
+  const response = await fetch(API.capacityCheck, {
+
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify(capacityData)
+
+  });
+
+  const data = await response.json();
+
+  setAgentReadout(data.response);
+
+};
+
+
+
+// ========================================
+// WEEKEND PLANNER
+// ========================================
+
+const handleWeekendPlanner = async (
+  plannerData
+) => {
+
+  const response = await fetch(API.weekendPlanner, {
+
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify(plannerData)
+
+  });
+
+  const data = await response.json();
+
+  setAgentReadout(data.response);
+
+};
+
+
+
+// ========================================
+// TASK CLEANUP
+// ========================================
+
+const handleTaskCleanup = async () => {
+
+  const response = await fetch(API.taskCleanup, {
+
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify({
+      todos
+    })
+
+  });
+
+  const data = await response.json();
+
+  setAgentReadout(data.response);
+
+};   
+
   return (
 
   <div className="app-layout">
