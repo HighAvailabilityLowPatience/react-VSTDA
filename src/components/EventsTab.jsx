@@ -1,6 +1,24 @@
 //events UI
 
-function EventsTab() {
+function EventsTab({events, handleAddEvent, handleUpdateEvent, handleDeleteEvent}) {
+  const submitEventForm = (e) => {
+
+  e.preventDefault();
+
+  const formData = new FormData(e.target);
+
+  const newEvent = {
+
+    title: formData.get("title"),
+
+    date: formData.get("date")
+
+  };
+
+  handleAddEvent(newEvent);
+
+};
+console.log(events)
 
   return (
 
@@ -26,7 +44,7 @@ function EventsTab() {
       {/* ADD EVENT FORM */}
       {/* ======================================== */}
 
-      <form className="event-form">
+      <form className="event-form" onSubmit={submitEventForm}>
 
         {/* EVENT TITLE */}
 
@@ -36,6 +54,7 @@ function EventsTab() {
 
           <input
             type="text"
+            name="title"
             placeholder="Concert, meetup, dinner, etc..."
           />
 
@@ -51,6 +70,7 @@ function EventsTab() {
 
           <input
             type="text"
+            name="location"
             placeholder="Downtown Columbia"
           />
 
@@ -64,7 +84,7 @@ function EventsTab() {
 
           <label>Date</label>
 
-          <input type="date" />
+          <input type="date" name="date" />
 
         </div>
 
@@ -78,6 +98,7 @@ function EventsTab() {
 
           <input
             type="text"
+             name="category"
             placeholder="Social, Music, Outdoor..."
           />
 
@@ -107,14 +128,35 @@ function EventsTab() {
 
       <div className="events-list">
 
-        <p>No events added yet.</p>
+  {events.length === 0 ? (
+    <p>No events added yet.</p>
+  ) : (
+    events.map((eventItem) => {
+      return (
+        <div
+          key={eventItem.id}
+          className="event-row"
+        >
+          <span>{eventItem.title}</span>
+          <span>{eventItem.date}</span>
+          <button
+            onClick={() => {
+              handleDeleteEvent(eventItem.id);
+            }}
+          >
+            X
+          </button>
+        </div>
 
-      </div>
+      );
 
+    })
+
+  )}
+
+</div>
     </section>
-
   );
-
 }
 
 

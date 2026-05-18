@@ -47,7 +47,7 @@ app.get("/todos", async (req, res) => {
 
     const todos = await loadJson("todos.json");
 
-    res.json(todos);
+    res.json({todos});
 
   } catch (err) {
 
@@ -100,7 +100,7 @@ app.get("/events", async (req, res) => {
 
     const events = await loadJson("events.json");
 
-    res.json(events);
+    res.json({events});
 
   } catch (err) {
 
@@ -153,7 +153,7 @@ app.get("/lists", async (req, res) => {
 
     const lists = await loadJson("lists.json");
 
-    res.json(lists);
+    res.json({lists});
 
   } catch (err) {
 

@@ -1,13 +1,17 @@
 //list management UI
-function ListsTab() {
+function ListsTab({ lists, handleAddListItem, handleUpdateListItem, handleDeleteListItem}) {
+  const submitListForm = (e, listType) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const value = formData.get("value");
+    handleAddListItem(listType, value);
+    e.target.reset();
 
-  return (
+  };
+
+return (
 
     <section className="lists-tab">
-
-      {/* ======================================== */}
-      {/* HEADER */}
-      {/* ======================================== */}
 
       <div className="lists-header">
 
@@ -21,20 +25,22 @@ function ListsTab() {
 
 
 
-      {/* ======================================== */}
       {/* TARGET LIST */}
-      {/* ======================================== */}
 
       <div className="list-group">
 
         <h3>Target</h3>
 
-        {/* ADD ITEM */}
-
-        <form className="list-form">
+        <form
+          className="list-form"
+          onSubmit={(e) => {
+            submitListForm(e, "target");
+          }}
+        >
 
           <input
             type="text"
+            name="value"
             placeholder="Add target..."
           />
 
@@ -46,13 +52,43 @@ function ListsTab() {
 
         </form>
 
-
-
-        {/* LIST DISPLAY */}
-
         <div className="list-items">
 
-          <p>No targets added.</p>
+          {lists.target?.length === 0 ? (
+
+            <p>No target items added.</p>
+
+          ) : (
+
+            lists.target?.map((item) => {
+
+              return (
+
+                <div
+                  key={item.id}
+                  className="list-item-row"
+                >
+
+                  <span>{item.value}</span>
+
+                  <button
+                    onClick={() => {
+                      handleDeleteListItem(
+                        "target",
+                        item.id
+                      );
+                    }}
+                  >
+                    X
+                  </button>
+
+                </div>
+
+              );
+
+            })
+
+          )}
 
         </div>
 
@@ -60,20 +96,22 @@ function ListsTab() {
 
 
 
-      {/* ======================================== */}
       {/* SUPPLEMENTS LIST */}
-      {/* ======================================== */}
 
       <div className="list-group">
 
         <h3>Supplements</h3>
 
-        {/* ADD ITEM */}
-
-        <form className="list-form">
+        <form
+          className="list-form"
+          onSubmit={(e) => {
+            submitListForm(e, "supplements");
+          }}
+        >
 
           <input
             type="text"
+            name="value"
             placeholder="Add supplement..."
           />
 
@@ -85,13 +123,43 @@ function ListsTab() {
 
         </form>
 
-
-
-        {/* LIST DISPLAY */}
-
         <div className="list-items">
 
-          <p>No supplements added.</p>
+          {lists.supplements?.length === 0 ? (
+
+            <p>No supplements added.</p>
+
+          ) : (
+
+            lists.supplements?.map((item) => {
+
+              return (
+
+                <div
+                  key={item.id}
+                  className="list-item-row"
+                >
+
+                  <span>{item.value}</span>
+
+                  <button
+                    onClick={() => {
+                      handleDeleteListItem(
+                        "supplements",
+                        item.id
+                      );
+                    }}
+                  >
+                    X
+                  </button>
+
+                </div>
+
+              );
+
+            })
+
+          )}
 
         </div>
 
@@ -99,20 +167,22 @@ function ListsTab() {
 
 
 
-      {/* ======================================== */}
       {/* GROCERIES LIST */}
-      {/* ======================================== */}
 
       <div className="list-group">
 
         <h3>Groceries</h3>
 
-        {/* ADD ITEM */}
-
-        <form className="list-form">
+        <form
+          className="list-form"
+          onSubmit={(e) => {
+            submitListForm(e, "groceries");
+          }}
+        >
 
           <input
             type="text"
+            name="value"
             placeholder="Add grocery item..."
           />
 
@@ -124,13 +194,43 @@ function ListsTab() {
 
         </form>
 
-
-
-        {/* LIST DISPLAY */}
-
         <div className="list-items">
 
-          <p>No grocery items added.</p>
+          {lists.groceries?.length === 0 ? (
+
+            <p>No grocery items added.</p>
+
+          ) : (
+
+            lists.groceries?.map((item) => {
+
+              return (
+
+                <div
+                  key={item.id}
+                  className="list-item-row"
+                >
+
+                  <span>{item.value}</span>
+
+                  <button
+                    onClick={() => {
+                      handleDeleteListItem(
+                        "groceries",
+                        item.id
+                      );
+                    }}
+                  >
+                    X
+                  </button>
+
+                </div>
+
+              );
+
+            })
+
+          )}
 
         </div>
 
@@ -141,6 +241,5 @@ function ListsTab() {
   );
 
 }
-
 
 export default ListsTab;

@@ -1,15 +1,34 @@
 //capacity form UI
-function CapacityModal({ onClose }) {
+function CapacityModal({ onClose, handleCapacityCheck }) {
+    const submitCapacityForm = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const capacityData = {
+      availableTime: Number(
+        formData.get("availableTime")
+      ),
+      energyLevel: Number(
+        formData.get("energyLevel")
+      ),
+      focusLevel: Number(
+        formData.get("focusLevel")
+      ),
+      emotionalContext: formData.get(
+        "emotionalContext"
+      )
+    };
+
+    console.log("CAPACITY DATA:", capacityData);
+
+    handleCapacityCheck(capacityData);
+
+  };
 
   return (
 
     <div className="modal-overlay">
 
       <div className="capacity-modal">
-
-        {/* ======================================== */}
-        {/* HEADER */}
-        {/* ======================================== */}
 
         <div className="modal-header">
 
@@ -23,11 +42,10 @@ function CapacityModal({ onClose }) {
 
 
 
-        {/* ======================================== */}
-        {/* FORM */}
-        {/* ======================================== */}
-
-        <form className="capacity-form">
+        <form
+          className="capacity-form"
+          onSubmit={submitCapacityForm}
+        >
 
           {/* AVAILABLE TIME */}
 
@@ -37,6 +55,7 @@ function CapacityModal({ onClose }) {
 
             <input
               type="number"
+              name="availableTime"
               placeholder="120"
             />
 
@@ -52,6 +71,7 @@ function CapacityModal({ onClose }) {
 
             <input
               type="number"
+              name="energyLevel"
               min="1"
               max="10"
               placeholder="5"
@@ -69,6 +89,7 @@ function CapacityModal({ onClose }) {
 
             <input
               type="number"
+              name="focusLevel"
               min="1"
               max="10"
               placeholder="5"
@@ -85,16 +106,13 @@ function CapacityModal({ onClose }) {
             <label>Emotional Context</label>
 
             <textarea
+              name="emotionalContext"
               placeholder="Describe current mood, stress, overwhelm, etc..."
             />
 
           </div>
 
 
-
-          {/* ======================================== */}
-          {/* ACTIONS */}
-          {/* ======================================== */}
 
           <div className="modal-actions">
 
@@ -124,6 +142,5 @@ function CapacityModal({ onClose }) {
   );
 
 }
-
 
 export default CapacityModal;

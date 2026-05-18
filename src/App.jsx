@@ -38,7 +38,12 @@ function App() {
 
 // Controls visibility of weekend planner popup
   const [showWeekendModal, setShowWeekendModal] = useState(false);
-
+//Events state
+const [events, setEvents] = useState([]);
+//Lists State
+const [lists, setLists] = useState({});
+//Agent Readout State
+const [agentReadout, setAgentReadout] = useState(null);
   //------------------
   //Initial Data Fetch handlers
 const fetchTodos = async () => {
@@ -51,11 +56,13 @@ const fetchTodos = async () => {
 
 };
 const fetchEvents = async () => {
-
+ console.log("FETCH EVENTS START");
   const response = await fetch(API.events);
+console.log("EVENTS RESPONSE STATUS:", response.status);
 
   const data = await response.json();
-
+// console.log("EVENTS DATA FROM BACKEND:", data);
+//  console.log("IS EVENTS DATA ARRAY?", Array.isArray(data));
   setEvents(data.events);
 
 };
@@ -222,14 +229,14 @@ console.log("Deleting Todo ID:", id);
   setSelectedItemId(id);
   };
   /*Handlers to add and where to pass them
-        handleAddEvent>>>eEventstab.js
-      handleUpdateEvent>>>Eventstab.js
-      handleDeleteEvent>>>>Eventstab.js
-      handleAddListItem>>>>Liststab.js
-      handleUpdateListItem>>>>Liststab.js
-      handleDeleteListItem>>>>Liststab.js
-      handleCapacityCheck>>>>Capacitymodal.js
-      handleWeekendPlanner>>>>Weekendplanner.js
+        handleAddEvent>>>eEventstab.js done
+      handleUpdateEvent>>>Eventstab.js done
+      handleDeleteEvent>>>>Eventstab.js done
+      handleAddListItem>>>>Liststab.js done
+      handleUpdateListItem>>>>Liststab.js done
+      handleDeleteListItem>>>>Liststab.js done
+      handleCapacityCheck>>>>Capacitymodal.js  done
+      handleWeekendPlanner>>>>Weekendplanner.js 
       handleTaskCleanup>>>>Agent AgentReadout.js
       */
 
@@ -495,149 +502,187 @@ const handleTaskCleanup = async () => {
 
   return (
 
-  <div className="app-layout">
+  <div className="app-shell">
 
     {/* ======================================== */}
-    {/* HEADER */}
+    {/* TOP NAVIGATION */}
     {/* ======================================== */}
 
-    <header className="app-header">
+    <header className="top-nav">
 
-      <h1>VSTDA</h1>
+      <div className="brand-section">
 
-      <p>Visual Task Decision Assistant</p>
+        <h1>VSTDA</h1>
+
+        <p>Visual Task Decision Assistant</p>
+
+      </div>
+
+
+
+      <div className="nav-actions">
+
+        {/* TAB BUTTONS */}
+
+        <button
+          onClick={() => setActiveTab("todos")}
+        >
+          Tasks
+        </button>
+
+        <button
+          onClick={() => setActiveTab("events")}
+        >
+          Events
+        </button>
+
+        <button
+          onClick={() => setActiveTab("lists")}
+        >
+          Lists
+        </button>
+
+
+
+        {/* AI TOOLS */}
+
+        <button
+          onClick={() => setShowCapacityModal(true)}
+        >
+          Capacity Check
+        </button>
+
+        <button
+          onClick={() => setShowWeekendModal(true)}
+        >
+          Plan Weekend
+        </button>
+
+      </div>
 
     </header>
 
 
 
     {/* ======================================== */}
-    {/* TOP ACTION BAR */}
+    {/* MAIN APP LAYOUT */}
     {/* ======================================== */}
 
-    <section className="top-action-bar">
-
-      {/* TAB BUTTONS */}
-
-      <button onClick={() => setActiveTab("todos")}>
-        Tasks
-      </button>
-
-      <button onClick={() => setActiveTab("events")}>
-        Events
-      </button>
-
-      <button onClick={() => setActiveTab("lists")}>
-        Lists
-      </button>
+    <div className="app-body">
 
 
 
-      {/* MODAL TRIGGERS */}
+      {/* ======================================== */}
+      {/* LEFT SIDEBAR */}
+      {/* ======================================== */}
 
-      <button onClick={() => setShowCapacityModal(true)}>
-        Capacity Check
-      </button>
+      <aside className="left-sidebar">
 
-      <button onClick={() => setShowWeekendModal(true)}>
-        Plan Weekend
-      </button>
+        {/* METRICS */}
 
-    </section>
+        <section className="metrics-panel">
 
+          <h2>Task Intelligence</h2>
 
+          <Sidebar
+            todos={todos}
+            completionLog={completionLog}
+          />
 
-    {/* ======================================== */}
-    {/* MAIN CONTENT AREA */}
-    {/* ======================================== */}
-
-    <section className="main-content-panel">
-
-      {activeTab === "todos" && (
-
-        <>
-
-          <section className="todo-form-panel">
-
-            <h2>Create Task</h2>
-
-            <TodoForm addTodo={addTodo} />
-
-          </section>
+        </section>
 
 
 
-          <section className="todo-list-panel">
+        {/* AGENT READOUT */}
 
-            <h2>Task List</h2>
+        <section className="agent-panel">
 
-            <TodoList
-              todos={todos}
-              deleteTodo={deleteTodo}
-              updateTodo={updateTodo}
-              toggleComplete={toggleComplete}
-              selectedItemId={selectedItemId}
-              selectTodoItem={selectTodoItem}
+          <h2>Agent Readout</h2>
+
+          <AgentReadout />
+
+        </section>
+
+      </aside>
+
+
+
+      {/* ======================================== */}
+      {/* MAIN CONTENT */}
+      {/* ======================================== */}
+
+      <main className="main-panel">
+
+        {activeTab === "todos" && (
+
+          <div className="todos-layout">
+
+            <section className="todo-form-panel">
+
+              <h2>Create Task</h2>
+
+              <TodoForm addTodo={addTodo} />
+
+            </section>
+
+
+
+            <section className="todo-list-panel">
+
+              <h2>Task List</h2>
+
+              <TodoList
+                todos={todos}
+                deleteTodo={deleteTodo}
+                updateTodo={updateTodo}
+                toggleComplete={toggleComplete}
+                selectedItemId={selectedItemId}
+                selectTodoItem={selectTodoItem}
+              />
+
+            </section>
+
+          </div>
+
+        )}
+
+
+
+        {activeTab === "events" && (
+
+          <section className="events-panel">
+
+            <EventsTab
+              events={events}
+              handleAddEvent={handleAddEvent}
+              handleUpdateEvent={handleUpdateEvent}
+              handleDeleteEvent={handleDeleteEvent}
             />
 
           </section>
 
-        </>
-
-      )}
+        )}
 
 
 
-      {activeTab === "events" && (
+        {activeTab === "lists" && (
 
-        <section className="events-panel">
+          <section className="lists-panel">
 
-          <h2>Events</h2>
+            <ListsTab
+              lists={lists}
+              handleAddListItem={handleAddListItem}
+              handleUpdateListItem={handleUpdateListItem}
+              handleDeleteListItem={handleDeleteListItem}
+            />
 
-          <EventsTab />
+          </section>
 
-        </section>
+        )}
 
-      )}
+      </main>
 
-
-
-      {activeTab === "lists" && (
-
-        <section className="lists-panel">
-
-          <h2>Lists</h2>
-
-          <ListsTab />
-
-        </section>
-
-      )}
-
-    </section>
-
-
-
-    {/* ======================================== */}
-    {/* SIDEBAR */}
-    {/* ======================================== */}
-
-    <section className="sidebar-panel">
-
-      <h2>Task Intelligence</h2>
-
-      <Sidebar
-        todos={todos}
-        completionLog={completionLog}
-      />
-
-
-
-      {/* AGENT READOUT */}
-
-      <AgentReadout />
-
-    </section>
+    </div>
 
 
 
@@ -648,6 +693,7 @@ const handleTaskCleanup = async () => {
     {showCapacityModal && (
 
       <CapacityModal
+        handleCapacityCheck={handleCapacityCheck}
         onClose={() => setShowCapacityModal(false)}
       />
 

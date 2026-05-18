@@ -50,9 +50,9 @@ async function callOpenRouter(finalPrompt) {
             }
           ],
 
-          temperature: config.openRouter.temperature,
+          temperature: Number(config.openRouter.temperature),
 
-          max_tokens: config.openRouter.maxTokens
+          max_tokens: Number(config.openRouter.maxTokens)
 
         })
 
