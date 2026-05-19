@@ -156,6 +156,59 @@ AGENT READOUT
   color: #d7def0;
 }
 
+.agent-response {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.agent-response h4 {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #dfe6ff;
+}
+
+
+
+.agent-warning {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 184, 77, 0.12);
+  border-left: 4px solid #ffb84d;
+  color: #ffd28a;
+  line-height: 1.5;
+}
+
+
+
+.agent-action-card {
+  padding: 16px;
+  border-radius: 14px;
+  background: #1c2230;
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: all 0.2s ease;
+}
+
+.agent-action-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(124,156,255,0.35);
+}
+
+
+
+.agent-action-card h5 {
+  margin-bottom: 8px;
+  color: #7c9cff;
+  font-size: 1rem;
+}
+
+
+.agent-action-card p {
+  color: #cfd6ec;
+  line-height: 1.6;
+}
+
 
 /* ========================================
 MAIN PANEL

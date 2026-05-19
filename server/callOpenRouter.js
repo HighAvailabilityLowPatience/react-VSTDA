@@ -100,7 +100,10 @@ async function callOpenRouter(finalPrompt) {
     // RETURN MODEL RESPONSE
     // ========================================
 
-    return aiResponse;
+    return {
+              success: true,
+              response: aiResponse
+            };
 
 
 

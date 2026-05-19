@@ -332,7 +332,15 @@ app.post("/todos", async (req, res) => {
 
     const { action, payload } = req.body;
 
+const updatedTodos = await manageTodos(
+      action,
+      payload
+    );
 
+    return res.json({
+      success: true,
+      todos: updatedTodos
+    });
 
     // ========================================
     // VALIDATION
@@ -446,7 +454,7 @@ app.post("/todos", async (req, res) => {
 
 app.post("/events", async (req, res) => {
 
-  try {
+   try {
 
     // ========================================
     // REQUEST DATA
@@ -475,49 +483,13 @@ app.post("/events", async (req, res) => {
 
 
     // ========================================
-    // ACTION DISPATCH
+    // EVENT MANAGER
     // ========================================
 
-    switch (action) {
-
-      case "createEvent":
-
-        console.log("Creating event...");
-        console.log(payload);
-
-        break;
-
-
-
-      case "updateEvent":
-
-        console.log("Updating event...");
-        console.log(payload);
-
-        break;
-
-
-
-      case "deleteEvent":
-
-        console.log("Deleting event...");
-        console.log(payload);
-
-        break;
-
-
-
-      default:
-
-        return res.status(400).json({
-
-          success: false,
-
-          error: "Invalid event action."
-
-        });
-
-    }
+    const updatedEvents = await manageEvents(
+      action,
+      payload
+    );
 
 
 
@@ -529,7 +501,7 @@ app.post("/events", async (req, res) => {
 
       success: true,
 
-      message: "Event action received."
+      events: updatedEvents
 
     });
 
@@ -537,9 +509,10 @@ app.post("/events", async (req, res) => {
 
   catch (error) {
 
-    console.error("EVENT ROUTE ERROR:", error);
-
-
+    console.error(
+      "EVENT ROUTE ERROR:",
+      error
+    );
 
     return res.status(500).json({
 
@@ -590,49 +563,13 @@ app.post("/lists", async (req, res) => {
 
 
     // ========================================
-    // ACTION DISPATCH
+    // LIST MANAGER
     // ========================================
 
-    switch (action) {
-
-      case "addListItem":
-
-        console.log("Adding list item...");
-        console.log(payload);
-
-        break;
-
-
-
-      case "updateListItem":
-
-        console.log("Updating list item...");
-        console.log(payload);
-
-        break;
-
-
-
-      case "deleteListItem":
-
-        console.log("Deleting list item...");
-        console.log(payload);
-
-        break;
-
-
-
-      default:
-
-        return res.status(400).json({
-
-          success: false,
-
-          error: "Invalid list action."
-
-        });
-
-    }
+    const updatedLists = await manageLists(
+      action,
+      payload
+    );
 
 
 
@@ -644,7 +581,7 @@ app.post("/lists", async (req, res) => {
 
       success: true,
 
-      message: "List action received."
+      lists: updatedLists
 
     });
 
@@ -652,9 +589,10 @@ app.post("/lists", async (req, res) => {
 
   catch (error) {
 
-    console.error("LIST ROUTE ERROR:", error);
-
-
+    console.error(
+      "LIST ROUTE ERROR:",
+      error
+    );
 
     return res.status(500).json({
 

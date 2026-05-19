@@ -125,38 +125,51 @@ const addTodo = async (todoData) => {
 
 };
 //remove item from array and then return id to the bank
-  const deleteTodo = (id) => {
-console.log("Deleting Todo ID:", id);
+const deleteTodo = async (id) => {
 
+  console.log(
+    "Deleting Todo ID:",
+    id
+  );
 
-  // RETURN ID TO BANK
-  recycleId(id);
+  const response = await fetch(
+    API.todos,
+    {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+
+        action: "deleteTodo",
+
+        payload: {
+          id
+        }
+
+      })
+
+    }
+  );
+
+  const data = await response.json();
+
+  setTodos(data.todos);
+
 
 
   // CLEAR SELECTED ITEM IF NEEDED
+
   if (selectedItemId === id) {
 
     setSelectedItemId(null);
 
   }
 
-
-  // REMOVE TODO FROM ARRAY AND RETURN A NEW ARRAY
-  setTodos((currentTodos) => {
-
-    const updatedTodos = currentTodos.filter((todo) => {
-
-      return todo.id !== id;
-
-    });
-
-    console.log("Updated Todos:", updatedTodos);
-
-    return updatedTodos;
-
-  });
-
-  };
+};
 //edit the selected item
   const updateTodo = async (id, updatedData) => {
 
@@ -605,7 +618,7 @@ const handleTaskCleanup = async () => {
 
           <h2>Agent Readout</h2>
 
-          <AgentReadout />
+          <AgentReadout agentReadout={agentReadout} />
 
         </section>
 
