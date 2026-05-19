@@ -1,7 +1,33 @@
 //weekend planner form UI
 
-function WeekendPlannerModal({ onClose }) {
+function WeekendPlannerModal({handleWeekendPlanner,onClose }) {
+const submitWeekendPlanner = (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const weekendData = {
+    mood: formData.get("mood"),
+    energyLevel: Number(
+      formData.get("energyLevel")
+    ),
+    socialBattery: Number(
+      formData.get("socialBattery")
+    ),
+    availableTime: Number(
+      formData.get("availableTime")
+    ),
+    additionalContext: formData.get(
+      "additionalContext"
+    )
+  };
 
+  console.log(
+    "WEEKEND DATA:",
+    weekendData
+  );
+
+  handleWeekendPlanner(weekendData);
+
+};
   return (
 
     <div className="modal-overlay">
@@ -28,7 +54,9 @@ function WeekendPlannerModal({ onClose }) {
         {/* FORM */}
         {/* ======================================== */}
 
-        <form className="weekend-form">
+        <form className="weekend-form"
+        onSubmit={submitWeekendPlanner}
+        >
 
           {/* MOOD */}
 
@@ -38,6 +66,7 @@ function WeekendPlannerModal({ onClose }) {
 
             <input
               type="text"
+              name="mood"
               placeholder="Burned out, bored, restless, etc..."
             />
 
@@ -53,6 +82,7 @@ function WeekendPlannerModal({ onClose }) {
 
             <input
               type="number"
+              name="energyLevel"
               min="1"
               max="10"
               placeholder="5"
@@ -70,6 +100,7 @@ function WeekendPlannerModal({ onClose }) {
 
             <input
               type="number"
+              name="socialBattery"
               min="1"
               max="10"
               placeholder="5"
@@ -87,7 +118,8 @@ function WeekendPlannerModal({ onClose }) {
 
             <input
               type="number"
-              placeholder="480"
+              name="availableTime"
+              placeholder="In Minutes Example"
             />
 
           </div>
@@ -101,7 +133,8 @@ function WeekendPlannerModal({ onClose }) {
             <label>Additional Context</label>
 
             <textarea
-              placeholder="Describe current situation, recovery needs, goals, etc..."
+            name="additionalContext"
+            placeholder="Describe current situation, recovery needs, goals, etc..."
             />
 
           </div>

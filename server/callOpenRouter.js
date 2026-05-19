@@ -83,7 +83,7 @@ async function callOpenRouter(finalPrompt) {
     // ========================================
 
     const data = await response.json();
-
+    const aiResponse = data.choices[0].message.content;
 
 
     // ========================================
@@ -100,7 +100,7 @@ async function callOpenRouter(finalPrompt) {
     // RETURN MODEL RESPONSE
     // ========================================
 
-    return data;
+    return aiResponse;
 
 
 

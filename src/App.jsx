@@ -43,7 +43,7 @@ const [events, setEvents] = useState([]);
 //Lists State
 const [lists, setLists] = useState({});
 //Agent Readout State
-const [agentReadout, setAgentReadout] = useState(null);
+const [agentReadout, setAgentReadout] = useState("");
   //------------------
   //Initial Data Fetch handlers
 const fetchTodos = async () => {
@@ -236,8 +236,8 @@ console.log("Deleting Todo ID:", id);
       handleUpdateListItem>>>>Liststab.js done
       handleDeleteListItem>>>>Liststab.js done
       handleCapacityCheck>>>>Capacitymodal.js  done
-      handleWeekendPlanner>>>>Weekendplanner.js 
-      handleTaskCleanup>>>>Agent AgentReadout.js
+      handleWeekendPlanner>>>>Weekendplanner.js done
+      handleTaskCleanup>>>>Agent AgentReadout.js done
       */
 
    // ========================================
@@ -542,6 +542,12 @@ const handleTaskCleanup = async () => {
           Lists
         </button>
 
+        <button
+          onClick={handleTaskCleanup}
+        >
+        Clean Tasks
+        </button>
+
 
 
         {/* AI TOOLS */}
@@ -704,6 +710,7 @@ const handleTaskCleanup = async () => {
     {showWeekendModal && (
 
       <WeekendPlannerModal
+        handleWeekendPlanner={handleWeekendPlanner}
         onClose={() => setShowWeekendModal(false)}
       />
 

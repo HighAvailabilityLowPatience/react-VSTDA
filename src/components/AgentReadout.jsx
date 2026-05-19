@@ -1,16 +1,14 @@
 //displaying AI output
 
-function AgentReadout() {
+function AgentReadout({agentReadout}) {
 
   return (
 
-    <section className="agent-readout">
+  <section className="agent-readout">
 
-      <h3>Agent Readout</h3>
+    <h3>Agent Readout</h3>
 
-
-
-      {/* EMPTY STATE */}
+    {!agentReadout ? (
 
       <div className="agent-readout-empty">
 
@@ -18,21 +16,23 @@ function AgentReadout() {
 
       </div>
 
+    ) : (
 
+      <div className="agent-response">
 
-      {/* FUTURE RESPONSE DISPLAY */}
+        <pre>
 
-      {/*
-        Future:
-        - Capacity check output
-        - Weekend plans
-        - Cleanup recommendations
-        - AI summaries
-      */}
+          {agentReadout}
 
-    </section>
+        </pre>
 
-  );
+      </div>
+
+    )}
+
+  </section>
+
+);
 
 }
 
