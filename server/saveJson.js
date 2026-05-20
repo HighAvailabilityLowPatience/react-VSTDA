@@ -33,7 +33,7 @@ import path from "path";
 
 async function saveJson(filename, data) {
 
-  const filePath = path.join("data", filename);
+  const filePath = path.join("server","data", filename);
 
   const jsonData = JSON.stringify(data, null, 2);
 

@@ -12,12 +12,12 @@ import { useState, useEffect } from "react";
 //ENDPOINTS
 
 const API = {
-  todos: "http://localhost:3000/todos",
-  events: "http://localhost:3000/events",
-  lists: "http://localhost:3000/lists",
-  capacityCheck: "http://localhost:3000/capacity-check",
-  weekendPlanner: "http://localhost:3000/weekend-planner",
-  taskCleanup: "http://localhost:3000/task-cleanup"
+  todos: "/todos",
+  events: "/events",
+  lists: "/lists",
+  capacityCheck: "/capacity-check",
+  weekendPlanner: "/weekend-planner",
+  taskCleanup: "/task-cleanup"
 };
 
 function App() {

@@ -20,7 +20,7 @@ import path from "path";
 
 async function loadJson(filename) {
     //file path created by parameters and request
-const filePath = path.join("data", filename);
+const filePath = path.join("server","data", filename);
 //then use filepath variable to go read the requested file
 const jsonData = await fs.readFile(filePath, "utf-8");
 //json parsing

@@ -6,13 +6,32 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
+
+
+# =========================
+# INSTALL DEPENDENCIES
+# =========================
+
 COPY package*.json ./
 
 RUN npm install
 
+
+
+# =========================
+# COPY PROJECT FILES
+# =========================
+
 COPY . .
 
+
+
+# =========================
+# BUILD REACT FRONTEND
+# =========================
+
 RUN npm run build
+
 
 
 # =========================
@@ -24,8 +43,9 @@ FROM node:20-alpine
 WORKDIR /app
 
 
+
 # =========================
-# INSTALL SERVER DEPENDENCIES
+# INSTALL RUNTIME DEPS
 # =========================
 
 COPY package*.json ./
@@ -33,15 +53,29 @@ COPY package*.json ./
 RUN npm install --omit=dev
 
 
+
 # =========================
-# COPY SERVER + BUILT FRONTEND
+# COPY BUILT FRONTEND
 # =========================
 
 COPY --from=build /app/dist ./dist
 
+
+
+# =========================
+# COPY BACKEND
+# =========================
+
 COPY server ./server
 
-COPY data ./data
+
+
+# =========================
+# COPY DATA
+# =========================
+
+COPY server/data ./server/data
+
 
 
 # =========================
@@ -51,15 +85,17 @@ COPY data ./data
 ENV PORT=3000
 
 
+
 # =========================
-# EXPOSE APPLICATION PORT
+# EXPOSE PORT
 # =========================
 
 EXPOSE 3000
 
 
+
 # =========================
-# START SERVER
+# START EXPRESS SERVER
 # =========================
 
 CMD ["node", "server/index.js"]

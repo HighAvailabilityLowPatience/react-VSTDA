@@ -532,4 +532,9 @@ MOBILE
   }
 
   .event-row,
-  .list-item
+  .list-item{
+      display: flex;
+      align-items: center;
+  }
+  
+}

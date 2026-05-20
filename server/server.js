@@ -1,12 +1,25 @@
 import express from "express";
 import cors from "cors";
-
+import path from "path";//front end serving
+import { fileURLToPath } from "url";//front end serving
 import loadJson from "./loadJson.js"; //done
 import saveJson from "./saveJson.js"; //done
 import loadPrompt from "./loadPrompt.js"; //done
 import buildPrompt from "./buildPrompt.js";//done
 import callOpenRouter from "./callOpenRouter.js";//done
-import {manageTodos,manageEvents,manageLists} from "./Manager.js";
+import {manageTodos,manageEvents,manageLists} from "./Manager.js";//done
+
+// ========================================
+// PATH SETUP
+// ========================================
+
+const __filename = fileURLToPath(
+  import.meta.url
+);
+
+const __dirname = path.dirname(
+  __filename
+);
 
 
 const app = express();
@@ -25,7 +38,7 @@ app.use(express.json());
 // HEALTH CHECK
 // ======================
 
-app.get("/", (req, res) => {
+app.get("/health", (req, res) => {
 
   res.json({
     status: "online",
@@ -605,9 +618,31 @@ app.post("/lists", async (req, res) => {
   }
 
 });
+// ========================================
+// STATIC FRONTEND IDK HOW THIS WORKS
+// ========================================
+app.use(
+  express.static(
+    path.join(__dirname, "../dist")
+  )
+);
 
 // ========================================
-// GLOBAL ERROR HANDLER
+// REACT FALLBACK IDK HOW THIS WORKS
+// ========================================
+
+app.get(/.*/, (req, res) => {
+
+  res.sendFile(
+    path.join(
+      __dirname,
+      "../dist/index.html"
+    )
+  );
+
+});
+// ========================================
+// GLOBAL ERROR HANDLER IDK HOW THIS WORKS
 // ========================================
 
 app.use((err, req, res, next) => {
@@ -621,6 +656,7 @@ app.use((err, req, res, next) => {
   });
 
 });
+
 
 
 export default app;
