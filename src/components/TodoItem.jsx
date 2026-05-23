@@ -16,8 +16,8 @@ function TodoItem({
   const priorityClass = todo.priority
   ? `priority-${todo.priority
       .toLowerCase()
-      .replaceAll(" + ", "-and-")
-      .replaceAll(", ", "-")
+      .replaceAll("+", "and")
+      .replaceAll(",", "")
       .replaceAll(" ", "-")}`
   : "priority-none";
 console.log(todo.priority, priorityClass);
