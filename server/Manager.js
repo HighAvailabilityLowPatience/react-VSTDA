@@ -2,13 +2,56 @@
 import saveJson from "./saveJson.js";
 import loadJson from "./loadJson.js";
 
-// Generates 500 IDs when server starts for Events, Todos, and Lists
-const todoIdBank = Array.from({ length: 500 }, (_, i) => i);
-console.log("TODO IDs:", todoIdBank.slice(0, 10));
-const eventIdBank = Array.from({ length: 500 }, (_, i) => `event-${i}`);
-console.log("EVENT IDs:", eventIdBank.slice(0, 10));
-const listIdBank = Array.from({ length: 500 }, (_, i) => `list-${i}`);
-console.log("LIST IDs:", listIdBank.slice(0, 10));
+//Wait for data to load
+const todos = await loadJson("todos.json");
+const events = await loadJson("events.json");
+const lists = await loadJson("lists.json");
+//Generate id Banks
+let todoIdBank = Array.from(
+  { length: 500 },
+  (_, index) => `todo-${index}`
+);
+console.log( "TODO IDs:",todoIdBank.slice(0, 10));
+let eventIdBank = Array.from(
+ { length: 500 },
+  (_, index) => `event-${index}`
+);
+console.log("EVENT IDs:",eventIdBank.slice(0, 10));
+let listIdBank = Array.from(
+  { length: 500 },
+  (_, index) => `list-${index}`
+);
+
+console.log( "LIST IDs:",listIdBank.slice(0, 10));
+
+//Remove Used ids
+const usedTodoIds = todos.map(
+  todo => todo.id
+);
+todoIdBank = todoIdBank.filter(
+  id => !usedTodoIds.includes(id)
+);
+const usedEventIds = events.map(
+  event => event.id
+);
+eventIdBank = eventIdBank.filter(
+  id => !usedEventIds.includes(id)
+);
+const allListItems = Object.values(
+  lists
+).flat();
+
+const usedListIds = allListItems.map(
+  item => item.id
+);
+
+listIdBank = listIdBank.filter(
+  id => !usedListIds.includes(id)
+);
+//Make it visible
+console.log( "Remaining TODO IDs:",todoIdBank.length);
+console.log("Remaining EVENT IDs:",eventIdBank.length);
+console.log("Remaining LIST IDs:",listIdBank.length);
 
 function nextTodoId() {
   if (todoIdBank.length === 0) throw new Error("No TODO IDs available");
