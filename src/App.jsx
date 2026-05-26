@@ -454,7 +454,7 @@ const handleCapacityCheck = async (
   const data = await response.json();
 
   setAgentReadout(data.response);
-
+  setShowCapacityModal(false);
 };
 
 
@@ -482,7 +482,7 @@ const handleWeekendPlanner = async (
   const data = await response.json();
 
   setAgentReadout(data.response);
-
+  setShowWeekendModal(false);
 };
 
 
