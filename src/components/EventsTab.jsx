@@ -11,7 +11,11 @@ function EventsTab({events, handleAddEvent, handleUpdateEvent, handleDeleteEvent
 
     title: formData.get("title"),
 
-    date: formData.get("date")
+    date: formData.get("date"),
+
+    category: formData.get("category"),
+
+    notes: formData.get("notes")
 
   };
 
@@ -103,6 +107,18 @@ console.log(events)
           />
 
         </div>
+        {/* NOTES */}
+
+          <div className="form-group">
+
+          <label>Notes</label>
+
+            <textarea
+              name="notes"
+              placeholder="Additional context..."
+            />
+
+          </div>
 
 
 

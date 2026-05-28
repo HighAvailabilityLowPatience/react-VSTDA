@@ -9,17 +9,17 @@ const lists = await loadJson("lists.json");
 //Generate id Banks
 let todoIdBank = Array.from(
   { length: 500 },
-  (_, index) => `todo-${index}`
+  (_, index) => index
 );
 console.log( "TODO IDs:",todoIdBank.slice(0, 10));
 let eventIdBank = Array.from(
  { length: 500 },
-  (_, index) => `event-${index}`
+  (_, index) => index
 );
 console.log("EVENT IDs:",eventIdBank.slice(0, 10));
 let listIdBank = Array.from(
   { length: 500 },
-  (_, index) => `list-${index}`
+  (_, index) => index
 );
 
 console.log( "LIST IDs:",listIdBank.slice(0, 10));

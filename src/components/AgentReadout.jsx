@@ -1,96 +1,40 @@
 //displaying AI output
 
-function AgentReadout({agentReadout}) {
-let parsedResponse = null;
-try {
-  parsedResponse = JSON.parse(
-    agentReadout
-  );
-} catch (err) {
-  console.log(
-    "Invalid JSON response"
-  );
-}
+function AgentReadout({ agentReadout }) {
+
   return (
 
-  <section className="agent-readout">
+    <section className="agent-readout">
 
-    <h3>Agent Readout</h3>
+      <h3>Agent Readout</h3>
 
-    {!agentReadout ? (
+      {!agentReadout ? (
 
-      <div className="agent-readout-empty">
+        <div className="agent-readout-empty">
 
-        <p>No active agent responses.</p>
+          <p>No active agent responses.</p>
 
-      </div>
+        </div>
 
-    ) : (
+      ) : (
 
-      <div className="agent-response">
+       <div className="agent-response">
 
-        <h4>
-          {parsedResponse?.summary}
-        </h4>
+      <div className="agent-output">
 
-
-
-        {parsedResponse?.systemConcerns?.map(
-          (concern, index) => {
-
-            return (
-
-              <div
-                key={index}
-                className="agent-warning"
-              >
-
-                ⚠ {concern}
-
-              </div>
-
-            );
-
-          }
-        )}
-
-
-
-        {parsedResponse?.recommendedActions?.map(
-          (action, index) => {
-
-            return (
-
-              <div
-                key={index}
-                className="agent-action-card"
-              >
-
-                <h5>
-                  {action.task}
-                </h5>
-
-                <p>
-                  {action.reason}
-                </p>
-
-              </div>
-
-            );
-
-          }
-        )}
+          {agentReadout}
 
       </div>
 
-    )}
+      </div>
 
-  </section>
+      )}
 
-);
+    </section>
+
+  );
 
 }
-
 
 // ========================================
 // EXPORT

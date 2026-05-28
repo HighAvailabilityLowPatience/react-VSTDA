@@ -19,7 +19,7 @@ import path from "path";
 
 async function loadPrompt(promptName) {
   //  load prompts.json registry
-const registryPath = path.join("server","data", "prompts.json");
+const registryPath = path.join("server","data","prompts","prompts.json");
 const registryData = await fs.readFile(registryPath, "utf-8");
 //reading thru our prompt registry
 const prompts = JSON.parse(registryData);

@@ -241,17 +241,6 @@ const deleteTodo = async (id) => {
 
   setSelectedItemId(id);
   };
-  /*Handlers to add and where to pass them
-        handleAddEvent>>>eEventstab.js done
-      handleUpdateEvent>>>Eventstab.js done
-      handleDeleteEvent>>>>Eventstab.js done
-      handleAddListItem>>>>Liststab.js done
-      handleUpdateListItem>>>>Liststab.js done
-      handleDeleteListItem>>>>Liststab.js done
-      handleCapacityCheck>>>>Capacitymodal.js  done
-      handleWeekendPlanner>>>>Weekendplanner.js done
-      handleTaskCleanup>>>>Agent AgentReadout.js done
-      */
 
    // ========================================
 // EVENTS
@@ -438,7 +427,7 @@ const handleDeleteListItem = async (
 const handleCapacityCheck = async (
   capacityData
 ) => {
-
+setShowCapacityModal(false);
   const response = await fetch(API.capacityCheck, {
 
     method: "POST",
@@ -450,11 +439,9 @@ const handleCapacityCheck = async (
     body: JSON.stringify(capacityData)
 
   });
-
   const data = await response.json();
-
   setAgentReadout(data.response);
-  setShowCapacityModal(false);
+  
 };
 
 
@@ -466,7 +453,7 @@ const handleCapacityCheck = async (
 const handleWeekendPlanner = async (
   plannerData
 ) => {
-
+  setShowWeekendModal(false);
   const response = await fetch(API.weekendPlanner, {
 
     method: "POST",
@@ -478,11 +465,8 @@ const handleWeekendPlanner = async (
     body: JSON.stringify(plannerData)
 
   });
-
   const data = await response.json();
-
   setAgentReadout(data.response);
-  setShowWeekendModal(false);
 };
 
 

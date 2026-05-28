@@ -209,6 +209,15 @@ AGENT READOUT
   line-height: 1.6;
 }
 
+.agent-output {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  line-height: 1.7;
+  color: #d7def0;
+  font-size: 0.95rem;
+}
+
 
 /* ========================================
 MAIN PANEL
