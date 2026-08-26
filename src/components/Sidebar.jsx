@@ -13,20 +13,38 @@ const recentCompletions = completionLog.filter((timestamp) => {
 });
   return (
 
-    <aside>
+    <aside className="task-intelligence">
 
       {/* =======================
           LEGEND
       ======================= */}
 
-      <section>
+      <section className="metrics-grid" aria-label="Task metrics">
 
-        <h2>Legend</h2>
+        <article className="metric-card">
+          <span className="metric-label">Total Estimated Work</span>
+          <strong className="metric-value">{totalEstimatedTime}</strong>
+          <span className="metric-subtext">minutes queued</span>
+        </article>
+
+        <article className="metric-card">
+          <span className="metric-label">7 Day Output</span>
+          <strong className="metric-value">{recentCompletions.length}</strong>
+          <span className="metric-subtext">completed items</span>
+        </article>
+
+      </section>
+
+      <details className="priority-guide">
+
+        <summary>Priority Guide</summary>
+
+        <div className="priority-guide-grid">
 
 
-        <div>
+        <article className="legend-card urgent-important">
 
-          <span>🔥</span>
+          <span className="legend-icon">F</span>
 
           <h3>Urgent + Important</h3>
 
@@ -38,12 +56,12 @@ const recentCompletions = completionLog.filter((timestamp) => {
             Ask: "Does this hurt me badly if delayed?"
           </small>
 
-        </div>
+        </article>
 
 
-        <div>
+        <article className="legend-card important-not-urgent">
 
-          <span>⚠️</span>
+          <span className="legend-icon">!</span>
 
           <h3>Important, Not Urgent</h3>
 
@@ -55,12 +73,12 @@ const recentCompletions = completionLog.filter((timestamp) => {
             Ask: "Will future me thank me for doing this?"
           </small>
 
-        </div>
+        </article>
 
 
-        <div>
+        <article className="legend-card urgent-not-important">
 
-          <span>⏳</span>
+          <span className="legend-icon">T</span>
 
           <h3>Urgent, Not Important</h3>
 
@@ -72,12 +90,12 @@ const recentCompletions = completionLog.filter((timestamp) => {
             Ask: "Am I reacting instead of progressing?"
           </small>
 
-        </div>
+        </article>
 
 
-        <div>
+        <article className="legend-card not-urgent-not-important">
 
-          <span>🧊</span>
+          <span className="legend-icon">Z</span>
 
           <h3>Not Urgent, Not Important</h3>
 
@@ -89,24 +107,26 @@ const recentCompletions = completionLog.filter((timestamp) => {
             Ask: "Is this actually worth my energy right now?"
           </small>
 
+        </article>
+
         </div>
 
-      </section>
+      </details>
 
    {/* =======================
     TASK STATUS
 ======================= */}
 
-<div>
+<details className="status-guide">
 
-  <h2>Task Status</h2>
+  <summary>Task Status</summary>
 
-</div>
+  <div className="status-guide-grid">
 
 
-<div>
+<article className="legend-card status-started">
 
-  <span>🚧</span>
+  <span className="legend-icon">S</span>
 
   <h3>Started</h3>
 
@@ -118,12 +138,12 @@ const recentCompletions = completionLog.filter((timestamp) => {
     Check notes for progress details or current state.
   </small>
 
-</div>
+</article>
 
 
-<div>
+<article className="legend-card status-blocker">
 
-  <span>⛔</span>
+  <span className="legend-icon">B</span>
 
   <h3>Blocker</h3>
 
@@ -135,39 +155,11 @@ const recentCompletions = completionLog.filter((timestamp) => {
     Check notes for blocker details or required action.
   </small>
 
-</div>
+</article>
 
-     {/* =======================
-          METRICS
-      ======================= */}
+  </div>
 
-      <section>
-
-        <h2>Metrics</h2>
-
-
-        <div>
-
-          <h3>Total Estimated Work</h3>
-
-          <p>
-            {totalEstimatedTime} Minutes
-          </p>
-
-        </div>
-
-
-        <div>
-
-          <h3>7 Day Output</h3>
-
-          <p>
-            {recentCompletions.length} Completed Items
-          </p>
-
-        </div>
-
-      </section>
+</details>
 
     </aside>
 
