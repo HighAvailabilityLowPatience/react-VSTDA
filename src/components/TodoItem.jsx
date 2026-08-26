@@ -24,35 +24,33 @@ console.log(todo.priority, priorityClass);
   return (
     
 
-  <article className={`todo-item ${priorityClass}`}>
+  <article className={`todo-item ${priorityClass} ${todo.completed ? "completed" : ""}`}>
 
     {/* =======================
         COLLAPSED SUMMARY VIEW
     ======================= */}
 
-    <div>
+    <div className="todo-summary">
 
-      <h2 onClick={() => selectTodoItem(todo.id)}>
+      <h3 onClick={() => selectTodoItem(todo.id)}>
         {todo.task}
-      </h2>
+      </h3>
 
-      <p>
+      <p className="todo-priority">
         {todo.priority || "No Priority"}
       </p>
 
-      <p>
-        ⏱ {todo.estimatedTimeCost} Minutes
-      </p>
-
-      <p>
-        📅 {todo.dueDate}
-      </p>
+      <div className="todo-meta">
+        <span>{todo.estimatedTimeCost} min</span>
+        <span>{todo.dueDate}</span>
+      </div>
 
       <button
+        className="todo-complete-button"
         onClick={() => toggleComplete(todo.id)}
       >
 
-        {todo.completed ? "✅ Completed" : "⬜ Incomplete"}
+        {todo.completed ? "Completed" : "Incomplete"}
 
       </button>
 
@@ -65,13 +63,13 @@ console.log(todo.priority, priorityClass);
 
     {isSelected && (
 
-      <div>
+      <div className="todo-details">
 
         {/* =======================
             PRIORITY
         ======================= */}
 
-        <div>
+        <div className="todo-edit-grid">
 
           <label>Priority:</label>
 
@@ -113,7 +111,7 @@ console.log(todo.priority, priorityClass);
             ESTIMATED TIME
         ======================= */}
 
-        <div>
+        <div className="todo-edit-grid">
 
           <label>Estimated Time:</label>
 
@@ -134,7 +132,7 @@ console.log(todo.priority, priorityClass);
             CATEGORY
         ======================= */}
 
-        <div>
+        <div className="todo-edit-grid">
 
           <label>Category:</label>
 
@@ -156,7 +154,7 @@ console.log(todo.priority, priorityClass);
             DUE DATE
         ======================= */}
 
-        <div>
+        <div className="todo-edit-grid">
 
           <label>Due Date:</label>
 
@@ -177,7 +175,7 @@ console.log(todo.priority, priorityClass);
             NOTES
         ======================= */}
 
-        <div>
+        <div className="todo-notes">
 
           <h3>Notes</h3>
 
@@ -199,10 +197,11 @@ console.log(todo.priority, priorityClass);
         ======================= */}
 
         <button
+          className="danger-button"
           onClick={() => deleteTodo(todo.id)}
         >
 
-          🗑 Delete
+          Delete
 
         </button>
 
