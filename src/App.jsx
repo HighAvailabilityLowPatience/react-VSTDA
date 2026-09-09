@@ -17,7 +17,8 @@ const API = {
   lists: "/lists",
   capacityCheck: "/capacity-check",
   weekendPlanner: "/weekend-planner",
-  taskCleanup: "/task-cleanup"
+  taskCleanup: "/task-cleanup",
+  chat: "/chat"
 };
 
 function App() {
@@ -44,6 +45,16 @@ const [events, setEvents] = useState([]);
 const [lists, setLists] = useState({});
 //Agent Readout State
 const [agentReadout, setAgentReadout] = useState("");
+//Chat State
+const [chatMessages, setChatMessages] = useState([]);
+const [chatInput, setChatInput] = useState("");
+const [chatStatus, setChatStatus] = useState("Ready");
+const [chatLocation, setChatLocation] = useState(null);
+const [isChatLoading, setIsChatLoading] = useState(false);
+const [isListening, setIsListening] = useState(false);
+const [speechRecognition, setSpeechRecognition] = useState(null);
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
   //------------------
   //Initial Data Fetch handlers
 const fetchTodos = async () => {
@@ -82,6 +93,107 @@ useEffect(() => {
   fetchEvents();
 
   fetchLists();
+
+}, []);
+
+useEffect(() => {
+
+  if (!SpeechRecognition) {
+
+    return;
+
+  }
+
+  const recognition = new SpeechRecognition();
+
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = "en-US";
+
+  recognition.onresult = (event) => {
+
+    const transcript = Array.from(event.results)
+      .map((result) => result[0].transcript)
+      .join("");
+
+    setChatInput(transcript);
+
+  };
+
+  recognition.onend = () => {
+
+    setIsListening(false);
+
+  };
+
+  recognition.onerror = () => {
+
+    setIsListening(false);
+    setChatStatus("Speech input stopped. You can type or try the mic again.");
+
+  };
+
+  setSpeechRecognition(recognition);
+
+  return () => {
+
+    recognition.abort();
+
+  };
+
+}, []);
+
+useEffect(() => {
+
+  if (!navigator.geolocation) {
+
+    return;
+
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+
+      const location = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy,
+        capturedAt: new Date().toISOString()
+      };
+
+      setChatLocation(location);
+
+      fetch(API.chat, {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          messages: [
+            {
+              role: "system",
+              content: "Application session started with browser location context."
+            }
+          ],
+          location
+        })
+
+      }).catch(() => {
+
+        console.log("/chat endpoint is not active yet for session location context.");
+
+      });
+
+    },
+    () => {
+
+      console.log("Browser location was not shared for this session.");
+
+    }
+  );
 
 }, []);
 
@@ -497,6 +609,128 @@ const handleTaskCleanup = async () => {
 
 };   
 
+// ========================================
+// CHAT
+// ========================================
+
+const postChatMessage = async (messages, location) => {
+
+  const response = await fetch(API.chat, {
+
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify({
+      messages,
+      location
+    })
+
+  });
+
+  if (!response.ok) {
+
+    throw new Error("Chat endpoint unavailable");
+
+  }
+
+  return response.json();
+
+};
+
+const sendChatMessage = async () => {
+
+  const trimmedMessage = chatInput.trim();
+
+  if (!trimmedMessage || isChatLoading) {
+
+    return;
+
+  }
+
+  const nextMessages = [
+    ...chatMessages,
+    {
+      role: "user",
+      content: trimmedMessage
+    }
+  ];
+
+  setChatMessages(nextMessages);
+  setChatInput("");
+  setIsChatLoading(true);
+  setChatStatus("Sending message to /chat...");
+
+  try {
+
+    const data = await postChatMessage(nextMessages, chatLocation);
+    const responseContent = data.response || data.message || "Chat response received.";
+    const assistantMessage = {
+      role: "assistant",
+      content: typeof responseContent === "string"
+        ? responseContent
+        : JSON.stringify(responseContent)
+    };
+
+    setChatMessages([...nextMessages, assistantMessage]);
+    setAgentReadout(responseContent);
+    setChatStatus("Chat response received.");
+
+  } catch {
+
+    setChatMessages([
+      ...nextMessages,
+      {
+        role: "assistant",
+        content: "/chat is not active yet. Your frontend message flow is wired and ready."
+      }
+    ]);
+    setChatStatus("Waiting for backend /chat endpoint.");
+
+  } finally {
+
+    setIsChatLoading(false);
+
+  }
+
+};
+
+const handleChatInputKeyDown = (event) => {
+
+  if (event.key === "Enter" && !event.shiftKey) {
+
+    event.preventDefault();
+    sendChatMessage();
+
+  }
+
+};
+
+const toggleSpeechToText = () => {
+
+  if (!speechRecognition) {
+
+    setChatStatus("Speech recognition is not available in this browser.");
+    return;
+
+  }
+
+  if (isListening) {
+
+    speechRecognition.stop();
+    setIsListening(false);
+    return;
+
+  }
+
+  setIsListening(true);
+  setChatStatus("Listening...");
+  speechRecognition.start();
+
+};
+
   return (
 
   <div className="app-shell">
@@ -587,7 +821,18 @@ const handleTaskCleanup = async () => {
 
           <h2>Agent Readout</h2>
 
-          <AgentReadout agentReadout={agentReadout} />
+          <AgentReadout
+            agentReadout={agentReadout}
+            chatInput={chatInput}
+            chatMessages={chatMessages}
+            chatStatus={chatStatus}
+            handleChatInputKeyDown={handleChatInputKeyDown}
+            isChatLoading={isChatLoading}
+            isListening={isListening}
+            sendChatMessage={sendChatMessage}
+            setChatInput={setChatInput}
+            toggleSpeechToText={toggleSpeechToText}
+          />
 
         </section>
 
