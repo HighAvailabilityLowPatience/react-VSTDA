@@ -12,6 +12,7 @@ export default defineConfig({
       '/capacity-check': 'http://localhost:3000',
       '/weekend-planner': 'http://localhost:3000',
       '/task-cleanup': 'http://localhost:3000',
+      '/chat': 'http://localhost:3000',
       '/health': 'http://localhost:3000',
     },
   },
