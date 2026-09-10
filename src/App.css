@@ -124,7 +124,7 @@ form button:hover,
 .main-panel,
 .todo-form-panel,
 .todo-list-panel,
-events-panel,
+.events-panel,
 .lists-panel,
 .list-group {
   border: 1px solid rgba(144, 239, 255, 0.15);
