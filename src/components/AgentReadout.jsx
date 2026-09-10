@@ -47,7 +47,18 @@ function renderValue(value, keyName = "Response") {
   return <p>{String(value || "None")}</p>;
 }
 
-function AgentReadout({ agentReadout }) {
+function AgentReadout({
+  agentReadout,
+  chatInput,
+  chatMessages,
+  chatStatus,
+  handleChatInputKeyDown,
+  isChatLoading,
+  isListening,
+  sendChatMessage,
+  setChatInput,
+  toggleSpeechToText
+}) {
   const parsedReadout = parseAgentReadout(agentReadout);
 
   return (
@@ -62,36 +73,80 @@ function AgentReadout({ agentReadout }) {
         <span className="agent-status">Ready</span>
       </div>
 
-      {!agentReadout ? (
-
-        <div className="agent-readout-empty">
-
-          <p>No active agent responses yet.</p>
-          <span>Run Clean Tasks, Capacity Check, or Plan Weekend to light this up.</span>
-
-        </div>
-
-      ) : (
-
-       <div className="agent-response">
-
-      {parsedReadout ? (
-
-        renderValue(parsedReadout)
-
-      ) : (
-
-        <div className="agent-output">
-
-          {agentReadout}
-
-        </div>
-
-      )}
-
+      <div className="agent-dialogue" aria-live="polite">
+        {chatMessages.map((message, index) => (
+          <article
+            className={`chat-message ${message.role}`}
+            key={`${message.role}-${index}`}
+          >
+            <span>{message.role === "user" ? "You" : "Assistant"}</span>
+            <p>{message.content}</p>
+          </article>
+        ))}
       </div>
 
-      )}
+      <div className="agent-response-surface">
+        {!agentReadout ? (
+
+          <div className="agent-readout-empty">
+
+            <p>No active agent responses yet.</p>
+            <span>Send a message, run Clean Tasks, Capacity Check, or Plan Weekend.</span>
+
+          </div>
+
+        ) : (
+
+         <div className="agent-response">
+
+        {parsedReadout ? (
+
+          renderValue(parsedReadout)
+
+        ) : (
+
+          <div className="agent-output">
+
+            {agentReadout}
+
+          </div>
+
+        )}
+
+        </div>
+
+        )}
+      </div>
+
+      <div className="agent-composer">
+        <textarea
+          aria-label="Chat message"
+          onChange={(event) => setChatInput(event.target.value)}
+          onKeyDown={handleChatInputKeyDown}
+          placeholder="Message the agent. Enter sends, Shift + Enter breaks line."
+          value={chatInput}
+        />
+
+        <div className="agent-composer-actions">
+          <span>{chatStatus}</span>
+
+          <button
+            className={isListening ? "voice-button listening" : "voice-button"}
+            onClick={toggleSpeechToText}
+            type="button"
+          >
+            {isListening ? "Stop" : "Voice"}
+          </button>
+
+          <button
+            disabled={isChatLoading}
+            onClick={sendChatMessage}
+            type="button"
+          >
+            {isChatLoading ? "Sending" : "Send"}
+          </button>
+        </div>
+      </div>
 
     </section>
 
