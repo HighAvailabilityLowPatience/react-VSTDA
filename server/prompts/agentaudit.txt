@@ -28,7 +28,7 @@ You are assisting with:
 
 ## TODO SYSTEM DATA
 
-{TODO_LIST}
+Use the CURRENT APPLICATION STATE provided to you to understand user's todos
 
 ---
 

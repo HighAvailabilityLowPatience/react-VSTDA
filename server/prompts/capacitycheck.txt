@@ -36,7 +36,7 @@ Emotional State / Context:
 TODO LIST
 --------------------------------------------------
 
-{TODO_LIST}
+Use the CURRENT APPLICATION STATE provided to you to understand the users todos
 
 --------------------------------------------------
 WORKLOAD INTERPRETATION

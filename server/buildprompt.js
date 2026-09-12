@@ -4,48 +4,144 @@ BUILDPROMPT.JS
 ========================================
 
 PURPOSE:
-Inject runtime variables into prompt templates.
+Build and package all model context needed
+for callOpenRouter.
 
 RESPONSIBILITIES:
-- Replace placeholders
-- Assemble final prompts
-- Inject dynamic runtime context
-
-THIS FILE SHOULD:
-- remain deterministic
-- only handle string assembly
+- Load raw system prompt
+- Replace prompt placeholders
+- Get runtime context
+- Get chat context
+- Return packaged model context
 
 THIS FILE SHOULD NOT:
 - call OpenRouter
 - contain route logic
 - contain persistence logic
-
-FLOW:
-template
-+
-runtime variables
-↓
-placeholder replacement
-↓
-final assembled prompt
 */
 
-//Dynamically Building the Prompt String with parameters template = Json string with full prompt loaded and replacing variables = placeholders in prompt string
-function buildPrompt(template, variables) {
+import loadPrompt from "./loadPrompt.js";
+import getRuntimeContext from "./runtimeContext.js";
+import loadSystemState from "./loadSystemState.js";
+import { getChatContext } from "./chat.js";
+//DEFAULT SYSTEM PROMPT FOR WHWEN I AM JUST CHATTING
+const DEFAULT_SYSTEM_PROMPT = `
+You are the user's personal assistant.
 
-  let finalPrompt = template;
+Use the provided runtime context, current application state,
+conversation history, and user message to provide useful,
+context-aware responses.
 
-  for (const [key, value] of Object.entries(variables)) {
+The current application state represents the user's actual
+application data and should be treated as the current source
+of truth.
 
-    console.log("PLACEHOLDER FOUND:", key);
-    //Container for holding the value we are going to swap
-    const placeholder = `{${key}}`;
-    //Match and Replace Variables with User Inputs
-    finalPrompt = finalPrompt.replace(placeholder,value || "");
+Be concise, practical, and helpful.
+`;
+
+// ========================================
+// BUILD PROMPT
+// ========================================
+
+async function buildPrompt(
+  promptName,
+  variables,
+  location,
+  userMessage
+) {
+
+  // ========================================
+  // GET RUNTIME CONTEXT
+  // ========================================
+
+  const runtimeContext =
+    getRuntimeContext(location);
+
+
+  // ========================================
+  // GET CHAT CONTEXT
+  // ========================================
+
+  const chatContext =
+    getChatContext(userMessage);
+
+
+  // ========================================
+  // DETERMINE SYSTEM PROMPT
+  // ========================================
+
+  let finalPrompt;
+
+
+  if (promptName) {
+
+    const template =
+      await loadPrompt(promptName);
+
+    finalPrompt = template;
+
+
+    // ========================================
+    // REPLACE TEMPLATE VARIABLES
+    // ========================================
+
+    for (
+      const [key, value]
+      of Object.entries(variables || {})
+    ) {
+
+      const placeholder =
+        `{${key}}`;
+
+      finalPrompt =
+        finalPrompt.replaceAll(
+          placeholder,
+          value ?? ""
+        );
+
+    }
+
+  } else {
+
+    finalPrompt =
+      DEFAULT_SYSTEM_PROMPT;
+
   }
-console.log("PROMPT PREVIEW:",finalPrompt.slice(0, 10),"...",finalPrompt.slice(-10));
-  return finalPrompt;
+  // ========================================
+  // LOAD SYSTEM STATE
+  // ========================================
+
+  const systemState =
+    await loadSystemState();
+
+
+  // ========================================
+  // RETURN MODEL CONTEXT
+  // ========================================
+
+  return {
+//MODEL INSTRUCTIONS
+    systemPrompt:
+      finalPrompt,
+//ENVIRONMENT CONTEXT
+    runtimeContext,
+
+    currentDateTime:
+      runtimeContext.currentDateTime,
+//APPLICATION DATA
+    systemState,
+//CONVERSATION BETWEEN USER AND MODEL
+    chatHistory:
+      chatContext.chatHistory,
+
+    userMessage:
+      chatContext.userMessage
+
+  };
 
 }
+// ========================================
+// EXPORTS
+// ========================================
 
 export default buildPrompt;

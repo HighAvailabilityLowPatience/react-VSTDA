@@ -42,7 +42,7 @@ CURRENT LOCATION
 --------------------------------------------------
 
 Current Location:
-{CURRENT_LOCATION}
+Use the Location provided in RUNTIME CONTEXT
 
 --------------------------------------------------
 AVAILABLE EVENTS / OPTIONS

@@ -1,13 +1,14 @@
 import express from "express";
 import cors from "cors";
-import path from "path";//front end serving
-import { fileURLToPath } from "url";//front end serving
-import loadJson from "./loadJson.js"; //done
-import saveJson from "./saveJson.js"; //done
-import loadPrompt from "./loadPrompt.js"; //done
-import buildPrompt from "./buildPrompt.js";//done
-import callOpenRouter from "./callOpenRouter.js";//done
-import {manageTodos,manageEvents,manageLists} from "./Manager.js";//done
+import path from "path";
+import { fileURLToPath } from "url";
+import loadJson from "./loadJson.js"; 
+import saveJson from "./saveJson.js"; 
+import loadPrompt from "./loadPrompt.js"; 
+import buildPrompt from "./buildPrompt.js";
+import callOpenRouter from "./callOpenRouter.js";
+import {manageTodos,manageEvents,manageLists} from "./Manager.js";
+import {addMessage} from "./chat.js";
 
 // ========================================
 // PATH SETUP
@@ -20,6 +21,41 @@ const __filename = fileURLToPath(
 const __dirname = path.dirname(
   __filename
 );
+
+// ========================================
+// SERVER-LEVEL LOCATION STATE
+// ========================================
+
+let storedLocation = null;
+
+const LOCATION_MAX_AGE_MS =
+  60 * 60 * 1000;
+
+
+function getActiveLocation() {
+
+  if (!storedLocation) {
+    return null;
+  }
+
+  const capturedAt =
+    new Date(storedLocation.capturedAt).getTime();
+
+  const age =
+    Date.now() - capturedAt;
+
+  if (
+    Number.isNaN(capturedAt) ||
+    age > LOCATION_MAX_AGE_MS
+  ) {
+
+    storedLocation = null;
+
+    return null;
+  }
+
+  return storedLocation;
+}
 
 
 const app = express();
@@ -618,8 +654,152 @@ app.post("/lists", async (req, res) => {
   }
 
 });
+
 // ========================================
-// STATIC FRONTEND IDK HOW THIS WORKS
+// POST /CHAT
+// ========================================
+
+app.post("/chat", async (req, res) => {
+
+    try {
+
+      const {
+        messages = [],
+        location,
+        promptName,
+        variables = {}
+      } = req.body;
+
+
+      // ========================================
+      // UPDATE LOCATION
+      // ========================================
+
+      if (location) {
+
+        storedLocation = location;
+
+      }
+
+
+      const activeLocation =
+        getActiveLocation();
+
+
+      // ========================================
+      // GET CURRENT USER MESSAGE
+      // ========================================
+
+      const latestUserMessage =
+        [...messages]
+          .reverse()
+          .find(
+            message =>
+              message.role === "user"
+          );
+
+
+      if (!latestUserMessage) {
+
+        return res
+          .status(400)
+          .json({
+            success: false,
+            error:
+              "No user message provided"
+          });
+
+      }
+
+
+      const userMessage =
+        latestUserMessage.content;
+
+
+      // ========================================
+      // UPDATE CHAT HISTORY
+      // ========================================
+
+      addMessage(
+        "user",
+        userMessage
+      );
+
+
+      // ========================================
+      // BUILD MODEL CONTEXT
+      // ========================================
+
+      const modelContext =
+        await buildPrompt(
+          promptName,
+          variables,
+          activeLocation,
+          userMessage
+        );
+
+
+      // ========================================
+      // CALL OPENROUTER
+      // ========================================
+
+      const result =
+        await callOpenRouter(
+          modelContext
+        );
+
+
+      // ========================================
+      // UPDATE CHAT HISTORY
+      // ========================================
+
+      addMessage(
+        "assistant",
+        result.response
+      );
+
+
+      // ========================================
+      // RETURN RESPONSE
+      // ========================================
+
+      return res
+        .status(200)
+        .json({
+
+          success: true,
+
+          response:
+            result.response
+
+        });
+
+
+    } catch (err) {
+
+      console.error(
+        "Chat Route Error:",
+        err
+      );
+
+
+      return res
+        .status(500)
+        .json({
+
+          success: false,
+
+          error:
+            "Unable to process chat request"
+
+        });
+
+    }
+
+  }
+);
+// ========================================
+// STATIC FRONTEND 
 // ========================================
 app.use(
   express.static(
@@ -628,7 +808,7 @@ app.use(
 );
 
 // ========================================
-// REACT FALLBACK IDK HOW THIS WORKS
+// REACT FALLBACK 
 // ========================================
 
 app.get(/.*/, (req, res) => {
@@ -642,7 +822,7 @@ app.get(/.*/, (req, res) => {
 
 });
 // ========================================
-// GLOBAL ERROR HANDLER IDK HOW THIS WORKS
+// GLOBAL ERROR HANDLER 
 // ========================================
 
 app.use((err, req, res, next) => {
