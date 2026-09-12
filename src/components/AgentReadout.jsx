@@ -49,6 +49,7 @@ function renderValue(value, keyName = "Response") {
 
 function AgentReadout({
   agentReadout,
+  chatError,
   chatInput,
   chatMessages,
   chatStatus,
@@ -119,6 +120,12 @@ function AgentReadout({
       </div>
 
       <div className="agent-composer">
+        {chatError ? (
+          <div className="agent-error" role="alert">
+            {chatError}
+          </div>
+        ) : null}
+
         <textarea
           aria-label="Chat message"
           onChange={(event) => setChatInput(event.target.value)}
