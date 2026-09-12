@@ -48,6 +48,7 @@ const [agentReadout, setAgentReadout] = useState("");
 //Chat State
 const [chatMessages, setChatMessages] = useState([]);
 const [chatInput, setChatInput] = useState("");
+const [chatError, setChatError] = useState("");
 const [chatStatus, setChatStatus] = useState("Ready");
 const [chatLocation, setChatLocation] = useState(null);
 const [isChatLoading, setIsChatLoading] = useState(false);
@@ -162,30 +163,6 @@ useEffect(() => {
       };
 
       setChatLocation(location);
-
-      fetch(API.chat, {
-
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-          messages: [
-            {
-              role: "system",
-              content: "Application session started with browser location context."
-            }
-          ],
-          location
-        })
-
-      }).catch(() => {
-
-        console.log("/chat endpoint is not active yet for session location context.");
-
-      });
 
     },
     () => {
@@ -613,7 +590,7 @@ const handleTaskCleanup = async () => {
 // CHAT
 // ========================================
 
-const postChatMessage = async (messages, location) => {
+const postChatMessage = async (userMessage, location) => {
 
   const response = await fetch(API.chat, {
 
@@ -624,19 +601,41 @@ const postChatMessage = async (messages, location) => {
     },
 
     body: JSON.stringify({
-      messages,
+      messages: [userMessage],
       location
     })
 
   });
 
-  if (!response.ok) {
+  let data = null;
 
-    throw new Error("Chat endpoint unavailable");
+  try {
+
+    data = await response.json();
+
+  } catch {
+
+    data = null;
 
   }
 
-  return response.json();
+  if (!response.ok) {
+
+    throw new Error(
+      data?.error ||
+      data?.message ||
+      `Chat request failed with status ${response.status}`
+    );
+
+  }
+
+  if (!data || data.response === undefined || data.response === null) {
+
+    throw new Error("Chat response did not include data.response.");
+
+  }
+
+  return data;
 
 };
 
@@ -650,23 +649,26 @@ const sendChatMessage = async () => {
 
   }
 
+  const userMessage = {
+    role: "user",
+    content: trimmedMessage
+  };
+
   const nextMessages = [
     ...chatMessages,
-    {
-      role: "user",
-      content: trimmedMessage
-    }
+    userMessage
   ];
 
   setChatMessages(nextMessages);
   setChatInput("");
+  setChatError("");
   setIsChatLoading(true);
   setChatStatus("Sending message to /chat...");
 
   try {
 
-    const data = await postChatMessage(nextMessages, chatLocation);
-    const responseContent = data.response || data.message || "Chat response received.";
+    const data = await postChatMessage(userMessage, chatLocation);
+    const responseContent = data.response;
     const assistantMessage = {
       role: "assistant",
       content: typeof responseContent === "string"
@@ -678,16 +680,10 @@ const sendChatMessage = async () => {
     setAgentReadout(responseContent);
     setChatStatus("Chat response received.");
 
-  } catch {
+  } catch (error) {
 
-    setChatMessages([
-      ...nextMessages,
-      {
-        role: "assistant",
-        content: "/chat is not active yet. Your frontend message flow is wired and ready."
-      }
-    ]);
-    setChatStatus("Waiting for backend /chat endpoint.");
+    setChatError(error.message || "Chat request failed.");
+    setChatStatus("Chat request failed.");
 
   } finally {
 
@@ -823,6 +819,7 @@ const toggleSpeechToText = () => {
 
           <AgentReadout
             agentReadout={agentReadout}
+            chatError={chatError}
             chatInput={chatInput}
             chatMessages={chatMessages}
             chatStatus={chatStatus}
