@@ -69,6 +69,37 @@ function nextListId() {
 }
 
 
+async function manageAction(action, payload) {
+
+  switch (action) {
+
+    case "createTodo":
+      return manageTodos(
+        action,
+        payload
+      );
+
+    case "createEvent":
+      return manageEvents(
+        action,
+        payload
+      );
+
+    case "addListItem":
+      return manageLists(
+        action,
+        payload
+      );
+
+    default:
+      throw new Error(
+        `Invalid manager action: ${action}`
+      );
+
+  }
+
+}
+
 
 async function manageTodos(action, payload) {
 
@@ -340,5 +371,6 @@ async function manageLists(action, payload) {
 export {
   manageTodos,
   manageEvents,
-  manageLists
+  manageLists,
+  manageAction
 };

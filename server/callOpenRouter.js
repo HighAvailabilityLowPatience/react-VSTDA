@@ -17,7 +17,72 @@ RESPONSIBILITIES:
 
 import config from "./config.js";
 import { addMessage } from "./chat.js";
+import {manageAction} from "./Manager.js";
 
+const tools = [
+  {
+    type: "function",
+    function: {
+      name: "createTodo",
+      description: "Create a new todo item.",
+      parameters: {
+        type: "object",
+        properties: {
+          task: { type: "string" },
+          priority: { type: "string" },
+          estimatedTimeCost: { type: "number" },
+          category: { type: "string" },
+          dueDate: { type: "string" },
+          notes: { type: "string" }
+        },
+        required: ["task","estimatedTimeCost","category"]
+      }
+    }
+  },
+
+  {
+    type: "function",
+    function: {
+      name: "createEvent",
+      description: "Create a new event.",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          location: { type: "string" },
+          category: { type: "string" },
+          date: { type: "string" },
+          notes: { type: "string" }
+        },
+        required: ["title"]
+      }
+    }
+  },
+
+  {
+    type: "function",
+    function: {
+      name: "addListItem",
+      description: "Add a new item to an existing list.",
+      parameters: {
+        type: "object",
+        properties: {
+          listType: {
+            type: "string",
+            description: "Use the exact list key from current application state."
+          },
+          value: {
+            type: "string"
+          }
+        },
+        required: [
+          "listType",
+          "value"
+        ]
+      }
+    }
+  }
+];
 
 // ========================================
 // CALL OPENROUTER
@@ -128,9 +193,15 @@ ${JSON.stringify(systemState, null, 2)}
               role: "user",
               content: userMessage
             }
-
           ],
 
+            // ========================================
+            // TOOLS
+            // ========================================
+            
+            tools,
+            tool_choice: "auto",
+            
           temperature: Number(
             config.openRouter.temperature
           ),
@@ -168,10 +239,33 @@ ${JSON.stringify(systemState, null, 2)}
 
     const data = await response.json();
 
-    const aiResponse =
-      data.choices[0].message.content;
+        const modelMessage =
+          data.choices[0].message;
 
+        const aiResponse =
+          modelMessage.content;
 
+        const toolCalls =
+          modelMessage.tool_calls || [];
+
+    // ========================================
+    // TOOL EXECUTIONS
+    // ========================================
+      for (const toolCall of toolCalls) {
+
+        const action =
+          toolCall.function.name;
+
+        const payload =
+          JSON.parse(
+            toolCall.function.arguments
+          );
+
+        await manageAction(
+          action,
+          payload
+        );
+}
     // ========================================
     // UPDATE CHAT HISTORY
     // ========================================

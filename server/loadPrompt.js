@@ -16,23 +16,69 @@ THIS FILE SHOULD:
 
 import fs from "fs/promises";
 import path from "path";
+import { fileURLToPath } from "url";
+
+
+// ========================================
+// CURRENT FILE DIRECTORY
+// ========================================
+
+const __filename =
+  fileURLToPath(import.meta.url);
+
+const __dirname =
+  path.dirname(__filename);
+
+
+// ========================================
+// LOAD PROMPT
+// ========================================
 
 async function loadPrompt(promptName) {
-  //  load prompts.json registry
-const registryPath = path.join("server","data","prompts","prompts.json");
-const registryData = await fs.readFile(registryPath, "utf-8");
-//reading thru our prompt registry
-const prompts = JSON.parse(registryData);
-  // find promptName inside registry
-const SelectedPrompt = prompts[promptName];
-  // get txt filename
-const promptFile = SelectedPrompt.prompt
-  //  read txt file
-const promptPath = path.join("server","data","prompts", promptFile);
-const rawPrompt = await fs.readFile(promptPath, "utf-8");
-  //  return raw prompt text
-  console.log(`Loaded Prompt Preview: ${rawPrompt.slice(0, 10)}...`);
-  return rawPrompt
+
+  const registryPath =
+    path.join(
+      __dirname,
+      "data",
+      "prompts",
+      "prompts.json"
+    );
+
+  const registryData =
+    await fs.readFile(
+      registryPath,
+      "utf-8"
+    );
+
+  const prompts =
+    JSON.parse(registryData);
+
+  const selectedPrompt =
+    prompts[promptName];
+
+  const promptFile =
+    selectedPrompt.prompt;
+
+  const promptPath =
+    path.join(
+      __dirname,
+      "data",
+      "prompts",
+      promptFile
+    );
+
+  const rawPrompt =
+    await fs.readFile(
+      promptPath,
+      "utf-8"
+    );
+
+  console.log(
+    `Loaded Prompt Preview: ${rawPrompt.slice(0, 10)}...`
+  );
+
+  return rawPrompt;
 }
+
 
 export default loadPrompt;
