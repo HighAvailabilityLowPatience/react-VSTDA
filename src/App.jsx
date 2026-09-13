@@ -677,7 +677,6 @@ const sendChatMessage = async () => {
     };
 
     setChatMessages([...nextMessages, assistantMessage]);
-    setAgentReadout(responseContent);
     setChatStatus("Chat response received.");
 
   } catch (error) {

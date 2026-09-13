@@ -33,6 +33,12 @@ async function callOpenRouter({
 }) {
 
   try {
+    console.log({
+  baseUrl: config.openRouter.baseUrl,
+  model: config.openRouter.model,
+  apiKeyLoaded: Boolean(config.openRouter.apiKey),
+  apiKeyLength: config.openRouter.apiKey?.length
+});
 
     const response = await fetch(
 
@@ -146,9 +152,12 @@ ${JSON.stringify(systemState, null, 2)}
 
     if (!response.ok) {
 
-      throw new Error(
-        `OpenRouter Request Failed: ${response.status}`
-      );
+      const errorBody =
+    await response.text();
+
+  throw new Error(
+    `OpenRouter Request Failed: ${response.status} - ${errorBody}`
+  );
 
     }
 
