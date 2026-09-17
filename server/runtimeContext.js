@@ -94,9 +94,16 @@ function getRuntimeContext(location) {
 
   if (!location) {
 
-    throw new Error(
-      "Runtime Context Error: location was not provided"
-    );
+    return {
+      location: null,
+      currentDateTime: {
+        iso: now.toISOString(),
+        date: now.toISOString().split("T")[0],
+        time: now.toISOString().split("T")[1],
+        timezone: "UTC"
+      },
+      season: null
+    };
 
   }
 
