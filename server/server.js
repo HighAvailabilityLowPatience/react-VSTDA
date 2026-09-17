@@ -4,8 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import loadJson from "./loadJson.js"; 
 import saveJson from "./saveJson.js"; 
-import loadPrompt from "./loadPrompt.js"; 
-import buildPrompt from "./buildPrompt.js";
+import buildPrompt from "./buildprompt.js";
 import callOpenRouter from "./callOpenRouter.js";
 import {manageTodos,manageEvents,manageLists} from "./Manager.js";
 import {addMessage} from "./chat.js";
@@ -251,25 +250,19 @@ app.post("/capacity-check", async (req, res) => {
 
   try {
 
-    const todos = await loadJson("todos.json");
+    const modelContext = await buildPrompt(
+      "capacityCheck",
+      {
+        AVAILABLE_TIME: req.body.availableTime,
+        ENERGY_LEVEL: req.body.energyLevel,
+        FOCUS_LEVEL: req.body.focusLevel,
+        EMOTIONAL_CONTEXT: req.body.emotionalContext
+      },
+      getActiveLocation(),
+      "Run a capacity check using my current application state."
+    );
 
-    const promptTemplate = await loadPrompt("capacityCheck");
-
-    const finalPrompt = buildPrompt(promptTemplate, {
-
-      AVAILABLE_TIME: req.body.availableTime,
-
-      ENERGY_LEVEL: req.body.energyLevel,
-
-      FOCUS_LEVEL: req.body.focusLevel,
-
-      EMOTIONAL_CONTEXT: req.body.emotionalContext,
-
-      TODO_LIST: JSON.stringify(todos, null, 2)
-
-    });
-
-    const response = await callOpenRouter(finalPrompt);
+    const response = await callOpenRouter(modelContext);
 
     res.json(response);
 
@@ -294,17 +287,14 @@ app.post("/task-cleanup", async (req, res) => {
 
   try {
 
-    const todos = await loadJson("todos.json");
+    const modelContext = await buildPrompt(
+      "taskCleanup",
+      {},
+      getActiveLocation(),
+      "Audit my active tasks and recommend cleanup improvements."
+    );
 
-    const promptTemplate = await loadPrompt("taskCleanup");
-
-    const finalPrompt = buildPrompt(promptTemplate, {
-
-      TODO_LIST: JSON.stringify(todos, null, 2)
-
-    });
-
-    const response = await callOpenRouter(finalPrompt);
+    const response = await callOpenRouter(modelContext);
 
     res.json(response);
 
@@ -331,27 +321,21 @@ app.post("/weekend-planner", async (req, res) => {
 
     const events = await loadJson("events.json");
 
-    const promptTemplate = await loadPrompt("weekendPlanner");
+    const modelContext = await buildPrompt(
+      "weekendPlanner",
+      {
+        MOOD: req.body.mood,
+        ENERGY_LEVEL: req.body.energyLevel,
+        SOCIAL_BATTERY: req.body.socialBattery,
+        AVAILABLE_TIME: req.body.availableTime,
+        USER_CONTEXT: req.body.additionalContext,
+        EVENT_LIST: JSON.stringify(events, null, 2)
+      },
+      getActiveLocation(),
+      "Create a weekend plan from the preferences I provided."
+    );
 
-    const finalPrompt = buildPrompt(promptTemplate, {
-
-      MOOD: req.body.mood,
-
-      ENERGY_LEVEL: req.body.energyLevel,
-
-      SOCIAL_BATTERY: req.body.socialBattery,
-
-      AVAILABLE_TIME: req.body.availableTime,
-
-      USER_CONTEXT: req.body.userContext,
-
-      CURRENT_LOCATION: req.body.currentLocation,
-
-      EVENT_LIST: JSON.stringify(events, null, 2)
-
-    });
-
-    const response = await callOpenRouter(finalPrompt);
+    const response = await callOpenRouter(modelContext);
 
     res.json(response);
 
@@ -714,16 +698,6 @@ app.post("/chat", async (req, res) => {
 
       const userMessage =
         latestUserMessage.content;
-
-
-      // ========================================
-      // UPDATE CHAT HISTORY
-      // ========================================
-
-      addMessage(
-        "user",
-        userMessage
-      );
 
 
       // ========================================
