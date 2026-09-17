@@ -40,7 +40,6 @@ async function loadPrompt(promptName) {
     path.join(
       __dirname,
       "data",
-      "prompts",
       "prompts.json"
     );
 
@@ -56,13 +55,16 @@ async function loadPrompt(promptName) {
   const selectedPrompt =
     prompts[promptName];
 
+  if (!selectedPrompt) {
+    throw new Error(`Unknown prompt: ${promptName}`);
+  }
+
   const promptFile =
     selectedPrompt.prompt;
 
   const promptPath =
     path.join(
       __dirname,
-      "data",
       "prompts",
       promptFile
     );
