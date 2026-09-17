@@ -16,7 +16,6 @@ RESPONSIBILITIES:
 */
 
 import config from "./config.js";
-import { addMessage } from "./chat.js";
 import {manageAction} from "./Manager.js";
 
 const tools = [
@@ -266,21 +265,6 @@ ${JSON.stringify(systemState, null, 2)}
           payload
         );
 }
-    // ========================================
-    // UPDATE CHAT HISTORY
-    // ========================================
-
-    addMessage(
-      "user",
-      userMessage
-    );
-
-    addMessage(
-      "assistant",
-      aiResponse
-    );
-
-
     // ========================================
     // SAFETY CHECK
     // ========================================
