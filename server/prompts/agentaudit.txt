@@ -78,6 +78,13 @@ Do not recommend cleanup, metadata changes, priority changes, category changes, 
 
 Treat completed tasks as historical records rather than active operational workload.
 
+Use each todo's status field as the source of truth:
+
+* incomplete: work has not begun
+* started: work is actively in progress
+* blocked: work cannot continue until a dependency or issue is resolved
+* completed: work is finished and must be excluded from the active audit
+
 ---
 
 ## AUDIT RULES
@@ -468,4 +475,3 @@ If clarification is needed instead of a direct change, represent that clearly in
 * If information is unclear, recommend clarification instead of inventing details
 * Treat all recommendations as suggestions requiring human approval
 * Do not execute actions
-

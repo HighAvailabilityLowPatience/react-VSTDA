@@ -1,49 +1,77 @@
-/*
-========================================
-CALLOPENROUTER.JS
-========================================
-
-PURPOSE:
-Handle communication with OpenRouter models.
-
-RESPONSIBILITIES:
-- Receive prepared model context
-- Shape messages for OpenRouter
-- Send request to OpenRouter
-- Handle API responses
-- Update conversation history
-- Return parsed model output
-*/
-
 import config from "./config.js";
-import {manageAction} from "./Manager.js";
+import { manageAction } from "./Manager.js";
+import { TODO_STATUSES } from "./todoStatus.js";
+
+const todoProperties = {
+  task: { type: "string" },
+  priority: { type: "string" },
+  estimatedTimeCost: { type: "number" },
+  category: { type: "string" },
+  status: { type: "string", enum: TODO_STATUSES },
+  dueDate: { type: "string" },
+  notes: { type: "string" }
+};
 
 const tools = [
   {
     type: "function",
     function: {
       name: "createTodo",
-      description: "Create a new todo item.",
+      description: "Create a todo item.",
       parameters: {
         type: "object",
-        properties: {
-          task: { type: "string" },
-          priority: { type: "string" },
-          estimatedTimeCost: { type: "number" },
-          category: { type: "string" },
-          dueDate: { type: "string" },
-          notes: { type: "string" }
-        },
-        required: ["task","estimatedTimeCost","category"]
+        properties: todoProperties,
+        required: ["task", "estimatedTimeCost", "category"]
       }
     }
   },
-
+  {
+    type: "function",
+    function: {
+      name: "updateTodo",
+      description: "Update fields on an existing todo item.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: { type: "number" },
+          changes: { type: "object", properties: todoProperties, additionalProperties: false }
+        },
+        required: ["id", "changes"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "setTodoStatus",
+      description: "Set a todo status to incomplete, started, blocked, or completed.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: { type: "number" },
+          status: { type: "string", enum: TODO_STATUSES }
+        },
+        required: ["id", "status"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "deleteTodo",
+      description: "Delete an existing todo item.",
+      parameters: {
+        type: "object",
+        properties: { id: { type: "number" } },
+        required: ["id"]
+      }
+    }
+  },
   {
     type: "function",
     function: {
       name: "createEvent",
-      description: "Create a new event.",
+      description: "Create an event.",
       parameters: {
         type: "object",
         properties: {
@@ -57,249 +85,191 @@ const tools = [
       }
     }
   },
-
+  {
+    type: "function",
+    function: {
+      name: "updateEvent",
+      description: "Update fields on an existing event.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: { type: "number" },
+          changes: { type: "object", additionalProperties: true }
+        },
+        required: ["id", "changes"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "deleteEvent",
+      description: "Delete an existing event.",
+      parameters: {
+        type: "object",
+        properties: { id: { type: "number" } },
+        required: ["id"]
+      }
+    }
+  },
   {
     type: "function",
     function: {
       name: "addListItem",
-      description: "Add a new item to an existing list.",
+      description: "Add an item to an existing list.",
       parameters: {
         type: "object",
         properties: {
-          listType: {
-            type: "string",
-            description: "Use the exact list key from current application state."
-          },
-          value: {
-            type: "string"
+          listType: { type: "string", description: "Use an exact list key from application state." },
+          value: { type: "string" }
+        },
+        required: ["listType", "value"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "updateListItem",
+      description: "Update an existing list item.",
+      parameters: {
+        type: "object",
+        properties: {
+          listType: { type: "string" },
+          id: { type: "number" },
+          changes: {
+            type: "object",
+            properties: { value: { type: "string" } },
+            additionalProperties: false
           }
         },
-        required: [
-          "listType",
-          "value"
-        ]
+        required: ["listType", "id", "changes"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "deleteListItem",
+      description: "Delete an existing list item.",
+      parameters: {
+        type: "object",
+        properties: {
+          listType: { type: "string" },
+          id: { type: "number" }
+        },
+        required: ["listType", "id"]
       }
     }
   }
 ];
 
-// ========================================
-// CALL OPENROUTER
-// ========================================
-
-async function callOpenRouter({
-  systemPrompt,
-  runtimeContext,
-  currentDateTime,
-  systemState,
-  chatHistory,
-  userMessage
-}) {
-
-  try {
-    console.log({
-  baseUrl: config.openRouter.baseUrl,
-  model: config.openRouter.model,
-  apiKeyLoaded: Boolean(config.openRouter.apiKey),
-  apiKeyLength: config.openRouter.apiKey?.length
-});
-
-    const response = await fetch(
-
-      config.openRouter.baseUrl,
-
-      {
-        method: "POST",
-
-        headers: {
-
-          Authorization: `Bearer ${config.openRouter.apiKey}`,
-
-          "Content-Type": "application/json"
-
-        },
-
-        body: JSON.stringify({
-
-          model: config.openRouter.model,
-
-          messages: [
-
-            // ========================================
-            // SYSTEM PROMPT
-            // ========================================
-
-            {
-              role: "system",
-              content: systemPrompt
-            },
-
-
-            // ========================================
-            // RUNTIME CONTEXT
-            // ========================================
-
-            {
-              role: "system",
-              content: `
-RUNTIME CONTEXT:
-
-${JSON.stringify(runtimeContext, null, 2)}
-`
-            },
-
-
-            // ========================================
-            // CURRENT DATE / TIME
-            // ========================================
-
-            {
-              role: "system",
-              content: `
-CURRENT DATE AND TIME:
-
-${JSON.stringify(currentDateTime, null, 2)}
-`
-            },
-
-
-            // ========================================
-            // CURRENT SYSTEM STATE
-            // ========================================
-
-            {
-              role: "system",
-              content: `
-CURRENT APPLICATION STATE:
-
-${JSON.stringify(systemState, null, 2)}
-`
-            },
-
-
-            // ========================================
-            // CHAT HISTORY
-            // ========================================
-
-            ...chatHistory,
-
-
-            // ========================================
-            // CURRENT USER MESSAGE
-            // ========================================
-
-            {
-              role: "user",
-              content: userMessage
-            }
-          ],
-
-            // ========================================
-            // TOOLS
-            // ========================================
-            
-            tools,
-            tool_choice: "auto",
-            
-          temperature: Number(
-            config.openRouter.temperature
-          ),
-
-          max_tokens: Number(
-            config.openRouter.maxTokens
-          )
-
-        })
-
-      }
-
-    );
-
-
-    // ========================================
-    // RESPONSE VALIDATION
-    // ========================================
-
-    if (!response.ok) {
-
-      const errorBody =
-    await response.text();
-
-  throw new Error(
-    `OpenRouter Request Failed: ${response.status} - ${errorBody}`
-  );
-
-    }
-
-
-    // ========================================
-    // PARSE RESPONSE
-    // ========================================
-
-    const data = await response.json();
-
-        const modelMessage =
-          data.choices[0].message;
-
-        const aiResponse =
-          modelMessage.content;
-
-        const toolCalls =
-          modelMessage.tool_calls || [];
-
-    // ========================================
-    // TOOL EXECUTIONS
-    // ========================================
-      for (const toolCall of toolCalls) {
-
-        const action =
-          toolCall.function.name;
-
-        const payload =
-          JSON.parse(
-            toolCall.function.arguments
-          );
-
-        await manageAction(
-          action,
-          payload
-        );
+function buildMessages(modelContext) {
+  return [
+    { role: "system", content: modelContext.systemPrompt },
+    {
+      role: "system",
+      content: `RUNTIME CONTEXT:\n\n${JSON.stringify(modelContext.runtimeContext, null, 2)}`
+    },
+    {
+      role: "system",
+      content: `CURRENT DATE AND TIME:\n\n${JSON.stringify(modelContext.currentDateTime, null, 2)}`
+    },
+    {
+      role: "system",
+      content: `CURRENT APPLICATION STATE:\n\n${JSON.stringify(modelContext.systemState, null, 2)}`
+    },
+    ...modelContext.chatHistory,
+    { role: "user", content: modelContext.userMessage }
+  ];
 }
-    // ========================================
-    // SAFETY CHECK
-    // ========================================
 
-    console.log(
-      "OpenRouter response received successfully"
-    );
+async function requestOpenRouter(messages, allowTools) {
+  const body = {
+    model: config.openRouter.model,
+    messages,
+    temperature: Number(config.openRouter.temperature),
+    max_tokens: Number(config.openRouter.maxTokens)
+  };
 
-
-    // ========================================
-    // RETURN MODEL RESPONSE
-    // ========================================
-
-    return {
-      success: true,
-      response: aiResponse
-    };
-
-
-  } catch (err) {
-
-    console.error(
-      "OpenRouter Runtime Error:",
-      err
-    );
-
-    throw err;
-
+  if (allowTools) {
+    body.tools = tools;
+    body.tool_choice = "auto";
   }
 
+  const response = await fetch(config.openRouter.baseUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${config.openRouter.apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`OpenRouter Request Failed: ${response.status} - ${errorBody}`);
+  }
+
+  const data = await response.json();
+  const message = data.choices?.[0]?.message;
+
+  if (!message) {
+    throw new Error("OpenRouter response did not include a message");
+  }
+
+  return message;
 }
 
+async function callOpenRouter(modelContext, { allowTools = true } = {}) {
+  const messages = buildMessages(modelContext);
+  const firstMessage = await requestOpenRouter(messages, allowTools);
+  const toolCalls = allowTools ? firstMessage.tool_calls || [] : [];
 
-// ========================================
-// EXPORTS
-// ========================================
+  if (toolCalls.length === 0) {
+    if (typeof firstMessage.content !== "string" || !firstMessage.content.trim()) {
+      throw new Error("OpenRouter returned an empty response");
+    }
+
+    return { success: true, response: firstMessage.content, mutations: [] };
+  }
+
+  const mutations = [];
+  const toolMessages = [];
+
+  for (const toolCall of toolCalls) {
+    const action = toolCall.function.name;
+    const payload = JSON.parse(toolCall.function.arguments || "{}");
+    const result = await manageAction(action, payload);
+
+    mutations.push({ action, payload });
+    toolMessages.push({
+      role: "tool",
+      tool_call_id: toolCall.id,
+      name: action,
+      content: JSON.stringify({ success: true, result })
+    });
+  }
+
+  try {
+    const finalMessage = await requestOpenRouter(
+      [...messages, firstMessage, ...toolMessages],
+      false
+    );
+
+    if (typeof finalMessage.content !== "string" || !finalMessage.content.trim()) {
+      throw new Error("OpenRouter returned no confirmation after tool execution");
+    }
+
+    return { success: true, response: finalMessage.content, mutations };
+  } catch (error) {
+    return {
+      success: true,
+      response: "The requested changes were completed, but the assistant confirmation could not be generated.",
+      mutations,
+      warning: error.message
+    };
+  }
+}
 
 export default callOpenRouter;

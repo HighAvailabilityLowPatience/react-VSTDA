@@ -7,7 +7,7 @@ import AgentReadout from "./components/AgentReadout";
 import TodoForm from "./components/TodoForm";
 import TodoList from "./components/TodoList";
 import Sidebar from "./components/Sidebar";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 //ENDPOINTS
 
@@ -20,6 +20,25 @@ const API = {
   taskCleanup: "/task-cleanup",
   chat: "/chat"
 };
+
+async function requestJson(url, options) {
+  const response = await fetch(url, options);
+  let data = null;
+
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error || data?.message || `Request failed with status ${response.status}`
+    );
+  }
+
+  return data;
+}
 
 function App() {
     // ======================
@@ -54,35 +73,24 @@ const [chatLocation, setChatLocation] = useState(null);
 const [isChatLoading, setIsChatLoading] = useState(false);
 const [isListening, setIsListening] = useState(false);
 const [speechRecognition, setSpeechRecognition] = useState(null);
+const todoSaveQueues = useRef(new Map());
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
   //------------------
   //Initial Data Fetch handlers
 const fetchTodos = async () => {
-
-  const response = await fetch(API.todos);
-
-  const data = await response.json();
+  const data = await requestJson(API.todos);
 
   setTodos(data.todos);
 
 };
 const fetchEvents = async () => {
- console.log("FETCH EVENTS START");
-  const response = await fetch(API.events);
-console.log("EVENTS RESPONSE STATUS:", response.status);
-
-  const data = await response.json();
-// console.log("EVENTS DATA FROM BACKEND:", data);
-//  console.log("IS EVENTS DATA ARRAY?", Array.isArray(data));
+  const data = await requestJson(API.events);
   setEvents(data.events);
 
 };
 const fetchLists = async () => {
-
-  const response = await fetch(API.lists);
-
-  const data = await response.json();
+  const data = await requestJson(API.lists);
 
   setLists(data.lists);
 
@@ -152,7 +160,7 @@ useEffect(() => {
 
   }
 
-  navigator.geolocation.getCurrentPosition(
+  const watchId = navigator.geolocation.watchPosition(
     (position) => {
 
       const location = {
@@ -167,10 +175,18 @@ useEffect(() => {
     },
     () => {
 
-      console.log("Browser location was not shared for this session.");
+      setChatLocation(null);
+      console.log("Browser location is unavailable for this session.");
 
+    },
+    {
+      enableHighAccuracy: false,
+      maximumAge: 5 * 60 * 1000,
+      timeout: 10000
     }
   );
+
+  return () => navigator.geolocation.clearWatch(watchId);
 
 }, []);
 
@@ -193,7 +209,7 @@ const addTodo = async (todoData) => {
 
   }
 
-  const response = await fetch(API.todos, {
+  const data = await requestJson(API.todos, {
 
     method: "POST",
 
@@ -208,8 +224,6 @@ const addTodo = async (todoData) => {
 
   });
 
-  const data = await response.json();
-
   setTodos(data.todos);
 
 };
@@ -221,7 +235,7 @@ const deleteTodo = async (id) => {
     id
   );
 
-  const response = await fetch(
+  const data = await requestJson(
     API.todos,
     {
 
@@ -244,8 +258,6 @@ const deleteTodo = async (id) => {
     }
   );
 
-  const data = await response.json();
-
   setTodos(data.todos);
 
 
@@ -260,33 +272,47 @@ const deleteTodo = async (id) => {
 
 };
 //edit the selected item
-  const updateTodo = async (id, updatedData) => {
+const updateTodo = async (id, updatedData) => {
+  setTodos((currentTodos) => currentTodos.map((todo) => (
+    todo.id === id ? { ...todo, ...updatedData } : todo
+  )));
 
-  const response = await fetch(API.todos, {
+  const previousSave = todoSaveQueues.current.get(id) || Promise.resolve();
+  const currentSave = previousSave
+    .catch(() => {})
+    .then(() => requestJson(API.todos, {
 
-    method: "POST",
+      method: "POST",
 
-    headers: {
-      "Content-Type": "application/json"
-    },
+      headers: {
+        "Content-Type": "application/json"
+      },
 
-    body: JSON.stringify({
-      action: "updateTodo",
-      payload: {
-        id,
-        changes: updatedData
-      }
-    })
+      body: JSON.stringify({
+        action: "updateTodo",
+        payload: {
+          id,
+          changes: updatedData
+        }
+      })
 
-  });
+    }));
 
-  const data = await response.json();
+  todoSaveQueues.current.set(id, currentSave);
 
-  setTodos(data.todos);
+  try {
+    await currentSave;
+  } catch (error) {
+    await fetchTodos();
+    throw error;
+  } finally {
+    if (todoSaveQueues.current.get(id) === currentSave) {
+      todoSaveQueues.current.delete(id);
+    }
+  }
 
 };
-  //edits array object from True-False
-  const toggleComplete = async (id) => {
+const updateTodoStatus = async (id, status) => {
 
   const targetTodo = todos.find((todo) => {
 
@@ -294,7 +320,7 @@ const deleteTodo = async (id) => {
 
   });
 
-  if (targetTodo && !targetTodo.completed) {
+  if (targetTodo && targetTodo.status !== "completed" && status === "completed") {
 
     setCompletionLog((currentLog) => {
 
@@ -304,24 +330,10 @@ const deleteTodo = async (id) => {
 
   }
 
-  const response = await fetch(API.todos, {
-
-    method: "POST",
-
-    headers: {
-      "Content-Type": "application/json"
-    },
-
-    body: JSON.stringify({
-      action: "toggleComplete",
-      payload: { id }
-    })
-
+  await updateTodo(id, {
+    status,
+    completed: status === "completed"
   });
-
-  const data = await response.json();
-
-  setTodos(data.todos);
 
 };
 //Controls selectedItemId, determines Which TodoItem is currently open/expanded/editable
@@ -516,21 +528,23 @@ const handleDeleteListItem = async (
 const handleCapacityCheck = async (
   capacityData
 ) => {
-setShowCapacityModal(false);
-  const response = await fetch(API.capacityCheck, {
+  setShowCapacityModal(false);
+  setChatError("");
+  setChatStatus("Running capacity check...");
 
-    method: "POST",
+  try {
+    const data = await requestJson(API.capacityCheck, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...capacityData, location: chatLocation })
+    });
 
-    headers: {
-      "Content-Type": "application/json"
-    },
-
-    body: JSON.stringify(capacityData)
-
-  });
-  const data = await response.json();
-  setAgentReadout(data.response);
-  
+    setAgentReadout(data.response);
+    setChatStatus("Capacity check complete.");
+  } catch (error) {
+    setChatError(error.message);
+    setChatStatus("Capacity check failed.");
+  }
 };
 
 
@@ -543,19 +557,22 @@ const handleWeekendPlanner = async (
   plannerData
 ) => {
   setShowWeekendModal(false);
-  const response = await fetch(API.weekendPlanner, {
+  setChatError("");
+  setChatStatus("Planning weekend...");
 
-    method: "POST",
+  try {
+    const data = await requestJson(API.weekendPlanner, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...plannerData, location: chatLocation })
+    });
 
-    headers: {
-      "Content-Type": "application/json"
-    },
-
-    body: JSON.stringify(plannerData)
-
-  });
-  const data = await response.json();
-  setAgentReadout(data.response);
+    setAgentReadout(data.response);
+    setChatStatus("Weekend plan ready.");
+  } catch (error) {
+    setChatError(error.message);
+    setChatStatus("Weekend planner failed.");
+  }
 };
 
 
@@ -565,24 +582,22 @@ const handleWeekendPlanner = async (
 // ========================================
 
 const handleTaskCleanup = async () => {
+  setChatError("");
+  setChatStatus("Auditing tasks...");
 
-  const response = await fetch(API.taskCleanup, {
+  try {
+    const data = await requestJson(API.taskCleanup, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ location: chatLocation })
+    });
 
-    method: "POST",
-
-    headers: {
-      "Content-Type": "application/json"
-    },
-
-    body: JSON.stringify({
-      todos
-    })
-
-  });
-
-  const data = await response.json();
-
-  setAgentReadout(data.response);
+    setAgentReadout(data.response);
+    setChatStatus("Task audit complete.");
+  } catch (error) {
+    setChatError(error.message);
+    setChatStatus("Task audit failed.");
+  }
 
 };   
 
@@ -591,43 +606,14 @@ const handleTaskCleanup = async () => {
 // ========================================
 
 const postChatMessage = async (userMessage, location) => {
-
-  const response = await fetch(API.chat, {
-
+  const data = await requestJson(API.chat, {
     method: "POST",
-
-    headers: {
-      "Content-Type": "application/json"
-    },
-
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       messages: [userMessage],
       location
     })
-
   });
-
-  let data = null;
-
-  try {
-
-    data = await response.json();
-
-  } catch {
-
-    data = null;
-
-  }
-
-  if (!response.ok) {
-
-    throw new Error(
-      data?.error ||
-      data?.message ||
-      `Chat request failed with status ${response.status}`
-    );
-
-  }
 
   if (!data || data.response === undefined || data.response === null) {
 
@@ -677,7 +663,11 @@ const sendChatMessage = async () => {
     };
 
     setChatMessages([...nextMessages, assistantMessage]);
-    setChatStatus("Chat response received.");
+    setChatStatus(data.warning ? `Changes saved. ${data.warning}` : "Chat response received.");
+
+    if (data.mutations?.length) {
+      await Promise.all([fetchTodos(), fetchEvents(), fetchLists()]);
+    }
 
   } catch (error) {
 
@@ -879,7 +869,7 @@ const toggleSpeechToText = () => {
                 todos={todos}
                 deleteTodo={deleteTodo}
                 updateTodo={updateTodo}
-                toggleComplete={toggleComplete}
+                updateTodoStatus={updateTodoStatus}
                 selectedItemId={selectedItemId}
                 selectTodoItem={selectTodoItem}
               />

@@ -38,6 +38,12 @@ TODO LIST
 
 Use the CURRENT APPLICATION STATE provided to you to understand the users todos
 
+Todo status meanings:
+- incomplete: work has not begun
+- started: work is actively in progress
+- blocked: work cannot continue until a dependency or issue is resolved
+- completed: work is finished and should not be recommended as active work
+
 --------------------------------------------------
 WORKLOAD INTERPRETATION
 --------------------------------------------------

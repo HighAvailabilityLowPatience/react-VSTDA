@@ -22,6 +22,7 @@ THIS FILE SHOULD NOT:
 
 import fs from "fs/promises";
 import path from "path";
+import { normalizeTodos } from "./todoStatus.js";
 
 
 // ========================================
@@ -86,7 +87,7 @@ async function loadSystemState() {
   // ========================================
 
   const todos =
-    JSON.parse(todosData);
+    normalizeTodos(JSON.parse(todosData));
 
   const lists =
     JSON.parse(listsData);

@@ -1,6 +1,7 @@
 //Actual mutation behavior
 import saveJson from "./saveJson.js";
 import loadJson from "./loadJson.js";
+import { normalizeTodo, normalizeTodos, validateTodoStatus } from "./todoStatus.js";
 
 //Wait for data to load
 const todos = await loadJson("todos.json");
@@ -74,18 +75,25 @@ async function manageAction(action, payload) {
   switch (action) {
 
     case "createTodo":
+    case "updateTodo":
+    case "deleteTodo":
+    case "setTodoStatus":
       return manageTodos(
         action,
         payload
       );
 
     case "createEvent":
+    case "updateEvent":
+    case "deleteEvent":
       return manageEvents(
         action,
         payload
       );
 
     case "addListItem":
+    case "updateListItem":
+    case "deleteListItem":
       return manageLists(
         action,
         payload
@@ -109,7 +117,7 @@ async function manageTodos(action, payload) {
 
     console.log(payload);
 
-  const todos = await loadJson("todos.json");
+  const todos = normalizeTodos(await loadJson("todos.json"));
 
   let updatedTodos = todos;
 
@@ -117,13 +125,17 @@ async function manageTodos(action, payload) {
 
     case "createTodo": {
 
+      const status = payload.status || "incomplete";
+      validateTodoStatus(status);
+
       const newTodo = {
         id: nextTodoId(),
         task: payload.task,
         priority: payload.priority || "",
         estimatedTimeCost: Number(payload.estimatedTimeCost) || 0,
         category: payload.category || "",
-        completed: false,
+        status,
+        completed: status === "completed",
         dueDate: payload.dueDate || "",
         notes: payload.notes || ""
       };
@@ -136,6 +148,10 @@ async function manageTodos(action, payload) {
 
     case "updateTodo": {
 
+      if (payload.changes?.status) {
+        validateTodoStatus(payload.changes.status);
+      }
+
       updatedTodos = todos.map((todo) => {
 
         if (todo.id !== payload.id) {
@@ -144,10 +160,12 @@ async function manageTodos(action, payload) {
 
         }
 
-        return {
+        const updatedTodo = {
           ...todo,
           ...payload.changes
         };
+
+        return normalizeTodo(updatedTodo);
 
       });
 
@@ -171,14 +189,17 @@ async function manageTodos(action, payload) {
       break;
     }
 
-    case "toggleComplete": {
+    case "setTodoStatus": {
+      validateTodoStatus(payload.status);
+
       updatedTodos = todos.map((todo) => {
         if (todo.id !== payload.id) {
           return todo;
         }
         return {
           ...todo,
-          completed: !todo.completed
+          status: payload.status,
+          completed: payload.status === "completed"
         };
 
       });

@@ -124,6 +124,17 @@ const recentCompletions = completionLog.filter((timestamp) => {
   <div className="status-guide-grid">
 
 
+<article className="legend-card status-incomplete">
+
+  <span className="legend-icon">I</span>
+
+  <h3>Incomplete</h3>
+
+  <p>Work has not started yet.</p>
+
+</article>
+
+
 <article className="legend-card status-started">
 
   <span className="legend-icon">S</span>
@@ -141,11 +152,11 @@ const recentCompletions = completionLog.filter((timestamp) => {
 </article>
 
 
-<article className="legend-card status-blocker">
+<article className="legend-card status-blocked">
 
   <span className="legend-icon">B</span>
 
-  <h3>Blocker</h3>
+  <h3>Blocked</h3>
 
   <p>
     Progress on this task is currently blocked by an issue or dependency.
@@ -154,6 +165,17 @@ const recentCompletions = completionLog.filter((timestamp) => {
   <small>
     Check notes for blocker details or required action.
   </small>
+
+</article>
+
+
+<article className="legend-card status-completed">
+
+  <span className="legend-icon">C</span>
+
+  <h3>Completed</h3>
+
+  <p>Work is finished and no longer part of the active queue.</p>
 
 </article>
 

@@ -4,7 +4,7 @@ function TodoList({
                         todos,
                         updateTodo,
                         deleteTodo,
-                        toggleComplete,
+                        updateTodoStatus,
                         selectedItemId,
                         selectTodoItem }) 
       {
@@ -18,7 +18,7 @@ function TodoList({
       todo={todo}
       deleteTodo={deleteTodo}
       updateTodo={updateTodo}
-      toggleComplete={toggleComplete}
+      updateTodoStatus={updateTodoStatus}
       selectedItemId={selectedItemId}
       selectTodoItem={selectTodoItem}
     />

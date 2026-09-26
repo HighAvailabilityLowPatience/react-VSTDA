@@ -480,12 +480,36 @@ textarea:disabled {
   border-color: #8b98a8;
 }
 
+.todo-item.priority-urgent-and-important {
+  --priority-color: #ff4f7b;
+}
+
+.todo-item.priority-important-not-urgent {
+  --priority-color: #00d9ff;
+}
+
+.todo-item.priority-urgent-not-important {
+  --priority-color: #ffb341;
+}
+
+.todo-item.priority-not-urgent-not-important {
+  --priority-color: #8b98a8;
+}
+
+.todo-item.priority-none {
+  --priority-color: #75f6ff;
+}
+
 .status-started {
   border-color: #b9ff45;
 }
 
-.status-blocker {
+.status-blocked {
   border-color: #ff4f7b;
+}
+
+.status-completed {
+  border-color: #00e5a8;
 }
 
 .main-panel {
@@ -562,10 +586,11 @@ select:focus {
 }
 
 .todo-item {
+  --priority-color: #75f6ff;
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(117, 246, 255, 0.12);
-  border-left: 5px solid #75f6ff;
+  border-left: 5px solid var(--priority-color);
   border-radius: 8px;
   padding: 16px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025));
@@ -578,6 +603,53 @@ select:focus {
 .todo-summary {
   display: grid;
   gap: 10px;
+}
+
+.todo-heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.todo-status-badge {
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: #dff3fa;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.todo-status-badge.status-started {
+  border-color: rgba(185, 255, 69, 0.55);
+  color: #dfffaa;
+}
+
+.todo-status-badge.status-blocked {
+  border-color: rgba(255, 79, 123, 0.6);
+  color: #ffb5c7;
+}
+
+.todo-status-badge.status-completed {
+  border-color: rgba(0, 229, 168, 0.55);
+  color: #9dffdf;
+}
+
+.todo-status-control {
+  display: grid;
+  grid-template-columns: auto minmax(140px, 220px);
+  align-items: center;
+  gap: 10px;
+}
+
+.todo-save-state {
+  min-height: 20px;
+  color: #8ba5b6;
+  font-size: 0.78rem;
 }
 
 .todo-summary h3 {

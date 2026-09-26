@@ -41,6 +41,26 @@ function TodoForm({ addTodo }) {
 
 
       {/* =======================
+          STATUS
+      ======================= */}
+
+      <div>
+
+        <label htmlFor="status">
+          Status
+        </label>
+
+        <select id="status" name="status" defaultValue="incomplete">
+          <option value="incomplete">Incomplete</option>
+          <option value="started">Started</option>
+          <option value="blocked">Blocked</option>
+          <option value="completed">Completed</option>
+        </select>
+
+      </div>
+
+
+      {/* =======================
           PRIORITY
       ======================= */}
 

@@ -7,6 +7,7 @@ import saveJson from "./saveJson.js";
 import buildPrompt from "./buildprompt.js";
 import callOpenRouter from "./callOpenRouter.js";
 import {manageTodos,manageEvents,manageLists} from "./Manager.js";
+import { normalizeTodos } from "./todoStatus.js";
 import {addMessage} from "./chat.js";
 
 // ========================================
@@ -93,7 +94,7 @@ app.get("/todos", async (req, res) => {
 
   try {
 
-    const todos = await loadJson("todos.json");
+    const todos = normalizeTodos(await loadJson("todos.json"));
 
     res.json({todos});
 
@@ -115,12 +116,13 @@ app.put("/todos", async (req, res) => {
 
   try {
 
-    const todos = req.body;
+    const todos = normalizeTodos(req.body);
 
     await saveJson("todos.json", todos);
 
     res.json({
-      success: true
+      success: true,
+      todos
     });
 
   } catch (err) {
@@ -250,19 +252,22 @@ app.post("/capacity-check", async (req, res) => {
 
   try {
 
-    const modelContext = await buildPrompt(
-      "capacityCheck",
-      {
+    if (req.body.location) storedLocation = req.body.location;
+
+    const modelContext = await buildPrompt({
+      promptName: "capacityCheck",
+      variables: {
         AVAILABLE_TIME: req.body.availableTime,
         ENERGY_LEVEL: req.body.energyLevel,
         FOCUS_LEVEL: req.body.focusLevel,
         EMOTIONAL_CONTEXT: req.body.emotionalContext
       },
-      getActiveLocation(),
-      "Run a capacity check using my current application state."
-    );
+      location: getActiveLocation(),
+      userMessage: "Run a capacity check using my current application state.",
+      includeChatHistory: false
+    });
 
-    const response = await callOpenRouter(modelContext);
+    const response = await callOpenRouter(modelContext, { allowTools: false });
 
     res.json(response);
 
@@ -271,7 +276,7 @@ app.post("/capacity-check", async (req, res) => {
     console.error("Capacity check failed:", err);
 
     res.status(500).json({
-      error: "Capacity check failed"
+      error: err.message || "Capacity check failed"
     });
 
   }
@@ -287,14 +292,17 @@ app.post("/task-cleanup", async (req, res) => {
 
   try {
 
-    const modelContext = await buildPrompt(
-      "taskCleanup",
-      {},
-      getActiveLocation(),
-      "Audit my active tasks and recommend cleanup improvements."
-    );
+    if (req.body.location) storedLocation = req.body.location;
 
-    const response = await callOpenRouter(modelContext);
+    const modelContext = await buildPrompt({
+      promptName: "taskCleanup",
+      variables: {},
+      location: getActiveLocation(),
+      userMessage: "Audit my active tasks and recommend cleanup improvements.",
+      includeChatHistory: false
+    });
+
+    const response = await callOpenRouter(modelContext, { allowTools: false });
 
     res.json(response);
 
@@ -303,7 +311,7 @@ app.post("/task-cleanup", async (req, res) => {
     console.error("Task cleanup failed:", err);
 
     res.status(500).json({
-      error: "Task cleanup failed"
+      error: err.message || "Task cleanup failed"
     });
 
   }
@@ -321,9 +329,11 @@ app.post("/weekend-planner", async (req, res) => {
 
     const events = await loadJson("events.json");
 
-    const modelContext = await buildPrompt(
-      "weekendPlanner",
-      {
+    if (req.body.location) storedLocation = req.body.location;
+
+    const modelContext = await buildPrompt({
+      promptName: "weekendPlanner",
+      variables: {
         MOOD: req.body.mood,
         ENERGY_LEVEL: req.body.energyLevel,
         SOCIAL_BATTERY: req.body.socialBattery,
@@ -331,11 +341,12 @@ app.post("/weekend-planner", async (req, res) => {
         USER_CONTEXT: req.body.additionalContext,
         EVENT_LIST: JSON.stringify(events, null, 2)
       },
-      getActiveLocation(),
-      "Create a weekend plan from the preferences I provided."
-    );
+      location: getActiveLocation(),
+      userMessage: "Create a weekend plan from the preferences I provided.",
+      includeChatHistory: false
+    });
 
-    const response = await callOpenRouter(modelContext);
+    const response = await callOpenRouter(modelContext, { allowTools: false });
 
     res.json(response);
 
@@ -344,7 +355,7 @@ app.post("/weekend-planner", async (req, res) => {
     console.error("Weekend planner failed:", err);
 
     res.status(500).json({
-      error: "Weekend planner failed"
+      error: err.message || "Weekend planner failed"
     });
 
   }
@@ -365,7 +376,14 @@ app.post("/todos", async (req, res) => {
 
     const { action, payload } = req.body;
 
-const updatedTodos = await manageTodos(
+    if (!action) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing action."
+      });
+    }
+
+    const updatedTodos = await manageTodos(
       action,
       payload
     );
@@ -373,90 +391,6 @@ const updatedTodos = await manageTodos(
     return res.json({
       success: true,
       todos: updatedTodos
-    });
-
-    // ========================================
-    // VALIDATION
-    // ========================================
-
-    if (!action) {
-
-      return res.status(400).json({
-
-        success: false,
-
-        error: "Missing action."
-
-      });
-
-    }
-
-    // ========================================
-    // ACTION DISPATCH
-    // ========================================
-
-    switch (action) {
-
-      case "createTodo":
-
-        console.log("Creating todo...");
-        console.log(payload);
-
-        break;
-
-
-
-      case "updateTodo":
-
-        console.log("Updating todo...");
-        console.log(payload);
-
-        break;
-
-
-
-      case "deleteTodo":
-
-        console.log("Deleting todo...");
-        console.log(payload);
-
-        break;
-
-
-
-      case "toggleComplete":
-
-        console.log("Toggling completion...");
-        console.log(payload);
-
-        break;
-
-
-
-      default:
-
-        return res.status(400).json({
-
-          success: false,
-
-          error: "Invalid todo action."
-
-        });
-
-    }
-
-
-
-    // ========================================
-    // SUCCESS RESPONSE
-    // ========================================
-
-    return res.status(200).json({
-
-      success: true,
-
-      message: "Todo action received."
-
     });
 
   }
@@ -705,12 +639,13 @@ app.post("/chat", async (req, res) => {
       // ========================================
 
       const modelContext =
-        await buildPrompt(
+        await buildPrompt({
           promptName,
           variables,
-          activeLocation,
-          userMessage
-        );
+          location: activeLocation,
+          userMessage,
+          includeChatHistory: true
+        });
 
 
       // ========================================
@@ -719,13 +654,19 @@ app.post("/chat", async (req, res) => {
 
       const result =
         await callOpenRouter(
-          modelContext
+          modelContext,
+          { allowTools: true }
         );
 
 
       // ========================================
       // UPDATE CHAT HISTORY
       // ========================================
+
+      addMessage(
+        "user",
+        userMessage
+      );
 
       addMessage(
         "assistant",
@@ -744,7 +685,13 @@ app.post("/chat", async (req, res) => {
           success: true,
 
           response:
-            result.response
+            result.response,
+
+          mutations:
+            result.mutations,
+
+          warning:
+            result.warning || null
 
         });
 
@@ -764,7 +711,7 @@ app.post("/chat", async (req, res) => {
           success: false,
 
           error:
-            "Unable to process chat request"
+            err.message || "Unable to process chat request"
 
         });
 

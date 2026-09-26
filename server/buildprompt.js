@@ -1,30 +1,8 @@
-/*
-========================================
-BUILDPROMPT.JS
-========================================
-
-PURPOSE:
-Build and package all model context needed
-for callOpenRouter.
-
-RESPONSIBILITIES:
-- Load raw system prompt
-- Replace prompt placeholders
-- Get runtime context
-- Get chat context
-- Return packaged model context
-
-THIS FILE SHOULD NOT:
-- call OpenRouter
-- contain route logic
-- contain persistence logic
-*/
-
 import loadPrompt from "./loadPrompt.js";
 import getRuntimeContext from "./runtimeContext.js";
 import loadSystemState from "./loadSystemState.js";
 import { getChatContext } from "./chat.js";
-//DEFAULT SYSTEM PROMPT FOR WHWEN I AM JUST CHATTING
+
 const DEFAULT_SYSTEM_PROMPT = `
 You are the user's personal assistant.
 
@@ -39,109 +17,45 @@ of truth.
 Be concise, practical, and helpful.
 `;
 
-// ========================================
-// BUILD PROMPT
-// ========================================
+async function buildPrompt({
+  promptName = null,
+  variables = {},
+  location = null,
+  userMessage,
+  includeChatHistory = true
+}) {
+  if (typeof userMessage !== "string" || !userMessage.trim()) {
+    throw new Error("Build Prompt Error: userMessage is required");
+  }
 
-async function buildPrompt(
-  promptName,
-  variables,
-  location,
-  userMessage
-) {
-
-  // ========================================
-  // GET RUNTIME CONTEXT
-  // ========================================
-
-  const runtimeContext =
-    getRuntimeContext(location);
-
-
-  // ========================================
-  // GET CHAT CONTEXT
-  // ========================================
-
-  const chatContext =
-    getChatContext(userMessage);
-
-
-  // ========================================
-  // DETERMINE SYSTEM PROMPT
-  // ========================================
-
-  let finalPrompt;
-
+  const runtimeContext = getRuntimeContext(location);
+  const chatContext = getChatContext(userMessage);
+  let systemPrompt = DEFAULT_SYSTEM_PROMPT;
 
   if (promptName) {
+    systemPrompt = await loadPrompt(promptName);
 
-    const template =
-      await loadPrompt(promptName);
-
-    finalPrompt = template;
-
-
-    // ========================================
-    // REPLACE TEMPLATE VARIABLES
-    // ========================================
-
-    for (
-      const [key, value]
-      of Object.entries(variables || {})
-    ) {
-
-      const placeholder =
-        `{${key}}`;
-
-      finalPrompt =
-        finalPrompt.replaceAll(
-          placeholder,
-          value ?? ""
-        );
-
+    for (const [key, value] of Object.entries(variables)) {
+      systemPrompt = systemPrompt.replaceAll(`{${key}}`, String(value ?? ""));
     }
 
-  } else {
+    const unresolvedVariables = systemPrompt.match(/\{[A-Z][A-Z0-9_]*\}/g);
 
-    finalPrompt =
-      DEFAULT_SYSTEM_PROMPT;
-
+    if (unresolvedVariables) {
+      throw new Error(
+        `Build Prompt Error: unresolved variables ${[...new Set(unresolvedVariables)].join(", ")}`
+      );
+    }
   }
-  // ========================================
-  // LOAD SYSTEM STATE
-  // ========================================
-
-  const systemState =
-    await loadSystemState();
-
-
-  // ========================================
-  // RETURN MODEL CONTEXT
-  // ========================================
 
   return {
-//MODEL INSTRUCTIONS
-    systemPrompt:
-      finalPrompt,
-//ENVIRONMENT CONTEXT
+    systemPrompt,
     runtimeContext,
-
-    currentDateTime:
-      runtimeContext.currentDateTime,
-//APPLICATION DATA
-    systemState,
-//CONVERSATION BETWEEN USER AND MODEL
-    chatHistory:
-      chatContext.chatHistory,
-
-    userMessage:
-      chatContext.userMessage
-
+    currentDateTime: runtimeContext.currentDateTime,
+    systemState: await loadSystemState(),
+    chatHistory: includeChatHistory ? chatContext.chatHistory : [],
+    userMessage: chatContext.userMessage
   };
-
 }
-// ========================================
-// EXPORTS
-// ========================================
 
 export default buildPrompt;

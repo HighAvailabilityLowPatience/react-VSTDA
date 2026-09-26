@@ -1,250 +1,75 @@
-/*
-========================================
-RUNTIMECONTEXT.JS
-========================================
-
-PURPOSE:
-Build runtime context for the current user session.
-
-RESPONSIBILITIES:
-- Receive browser location data
-- Preserve latitude / longitude / accuracy
-- Calculate age of location data
-- Generate current date and time
-- Determine current season
-
-THIS FILE SHOULD NOT:
-- contain route logic
-- call OpenRouter
-- manage chat history
-- persist data
-*/
-
-
-// ========================================
-// GET SEASON
-// ========================================
+const LOCATION_MAX_AGE_MS = 60 * 60 * 1000;
 
 function getSeason(latitude, month) {
-
-  // Northern Hemisphere
   let season;
 
-  if (month >= 3 && month <= 5) {
-
-    season = "spring";
-
-  } else if (month >= 6 && month <= 8) {
-
-    season = "summer";
-
-  } else if (month >= 9 && month <= 11) {
-
-    season = "fall";
-
-  } else {
-
-    season = "winter";
-
-  }
-
-
-  // ========================================
-  // SOUTHERN HEMISPHERE
-  // Seasons are reversed
-  // ========================================
+  if (month >= 3 && month <= 5) season = "spring";
+  else if (month >= 6 && month <= 8) season = "summer";
+  else if (month >= 9 && month <= 11) season = "fall";
+  else season = "winter";
 
   if (latitude < 0) {
-
-    const oppositeSeason = {
-
+    season = {
       spring: "fall",
       summer: "winter",
       fall: "spring",
       winter: "summer"
-
-    };
-
-    season = oppositeSeason[season];
-
+    }[season];
   }
-
 
   return season;
-
 }
 
-
-// ========================================
-// BUILD RUNTIME CONTEXT
-// ========================================
+function getCurrentDateTime(now) {
+  return {
+    iso: now.toISOString(),
+    date: now.toISOString().split("T")[0],
+    time: now.toISOString().split("T")[1],
+    timezone: "UTC"
+  };
+}
 
 function getRuntimeContext(location) {
-
-  // ========================================
-  // CURRENT TIME
-  // ========================================
-
   const now = new Date();
-
-
-  // ========================================
-  // LOCATION VALIDATION
-  // ========================================
+  const currentDateTime = getCurrentDateTime(now);
+  const latitude = location?.latitude;
+  const longitude = location?.longitude;
+  const capturedTime = new Date(location?.capturedAt);
 
   if (!location) {
-
-    return {
-      location: null,
-      currentDateTime: {
-        iso: now.toISOString(),
-        date: now.toISOString().split("T")[0],
-        time: now.toISOString().split("T")[1],
-        timezone: "UTC"
-      },
-      season: null
-    };
-
+    return { location: null, locationStatus: "unavailable", currentDateTime, season: null };
   }
 
-
-  const {
-    latitude,
-    longitude,
-    accuracy,
-    capturedAt
-  } = location;
-
-
-  if (
-    typeof latitude !== "number" ||
-    typeof longitude !== "number"
-  ) {
-
-    throw new Error(
-      "Runtime Context Error: invalid latitude or longitude"
-    );
-
+  if (typeof latitude !== "number" || typeof longitude !== "number") {
+    return { location: null, locationStatus: "invalid", currentDateTime, season: null };
   }
-
-
-  // ========================================
-  // LOCATION AGE
-  // ========================================
-
-  const capturedTime =
-    new Date(capturedAt);
-
 
   if (Number.isNaN(capturedTime.getTime())) {
-
-    throw new Error(
-      "Runtime Context Error: invalid capturedAt timestamp"
-    );
-
+    return { location: null, locationStatus: "invalid", currentDateTime, season: null };
   }
 
+  const ageMilliseconds = Math.max(0, now.getTime() - capturedTime.getTime());
 
-  const locationAgeMilliseconds =
-    Math.max(
-      0,
-      now.getTime() - capturedTime.getTime()
-    );
-
-
-  const locationAgeSeconds =
-    Math.floor(
-      locationAgeMilliseconds / 1000
-    );
-
-
-  const locationAgeMinutes =
-    Math.floor(
-      locationAgeSeconds / 60
-    );
-
-
-  // ========================================
-  // DATE / TIME
-  // ========================================
-
-  const currentDateTime = {
-
-    iso:
-      now.toISOString(),
-
-    date:
-      now.toISOString().split("T")[0],
-
-    time:
-      now.toISOString().split("T")[1],
-
-    timezone:
-      "UTC"
-
-  };
-
-
-  // ========================================
-  // SEASON
-  // ========================================
-
-  const currentMonth =
-    now.getUTCMonth() + 1;
-
-
-  const season =
-    getSeason(
-      latitude,
-      currentMonth
-    );
-
-
-  // ========================================
-  // RETURN RUNTIME CONTEXT
-  // ========================================
+  if (ageMilliseconds > LOCATION_MAX_AGE_MS) {
+    return { location: null, locationStatus: "stale", currentDateTime, season: null };
+  }
 
   return {
-
     location: {
-
       latitude,
-
       longitude,
-
-      accuracy:
-        accuracy ?? null,
-
-      capturedAt,
-
+      accuracy: location.accuracy ?? null,
+      capturedAt: location.capturedAt,
       age: {
-
-        milliseconds:
-          locationAgeMilliseconds,
-
-        seconds:
-          locationAgeSeconds,
-
-        minutes:
-          locationAgeMinutes
-
+        milliseconds: ageMilliseconds,
+        seconds: Math.floor(ageMilliseconds / 1000),
+        minutes: Math.floor(ageMilliseconds / 60000)
       }
-
     },
-
-
+    locationStatus: "available",
     currentDateTime,
-
-
-    season
-
+    season: getSeason(latitude, now.getUTCMonth() + 1)
   };
-
 }
-
-
-// ========================================
-// EXPORTS
-// ========================================
 
 export default getRuntimeContext;
